@@ -18,6 +18,7 @@ export const authService = {
 
       console.log('📡 Response status:', response.status);
       console.log('📡 Response ok:', response.ok);
+      
 
       const data = await response.json();
       console.log('📦 Full Response data:', JSON.stringify(data, null, 2));

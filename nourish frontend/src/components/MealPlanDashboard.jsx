@@ -310,7 +310,6 @@ const MealPlanDashboard = ({
               {/* Quick Info (Hidden on mobile) */}
               <div className="hidden md:flex flex-col items-center gap-1 text-sm opacity-90 border-l border-primary-foreground/20 pl-4">
                 <div className="flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" />
                   <span>${user?.budget || 75}/week</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -378,7 +377,7 @@ const MealPlanDashboard = ({
                       </div>
 
                       {/* Favorite Cuisines */}
-                      {user?.preferences?.cuisines &&
+                      {/* {user?.preferences?.cuisines &&
                         user.preferences.cuisines.length > 0 && (
                           <div className="mt-3">
                             <p className="text-xs text-gray-500 mb-1">
@@ -403,7 +402,7 @@ const MealPlanDashboard = ({
                               )}
                             </div>
                           </div>
-                        )}
+                        )} */}
                     </div>
 
                     {/* Menu Items */}
@@ -422,10 +421,10 @@ const MealPlanDashboard = ({
                         <Settings className="w-4 h-4" />
                         Settings & Preferences
                       </button>
-                      <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      {/* <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                         <Bell className="w-4 h-4" />
                         Notifications
-                      </button>
+                      </button> */}
                       <div className="border-t border-gray-100 my-2"></div>
                       <button
                         onClick={handleLogout}
@@ -557,126 +556,7 @@ const MealPlanDashboard = ({
           </div>
         </Card>
 
-        {/* Weekly Planner Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="p-4 text-center">
-            <DollarSign className="w-5 h-5 text-green-600 mx-auto mb-2" />
-            <div className="text-xl font-bold text-green-600">${weeklyStats.totalCost}</div>
-            <div className="text-sm text-gray-600">Weekly Cost</div>
-            <div className="text-xs text-gray-500">Budget: ${user?.budget || 75}</div>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <Sparkles className="w-5 h-5 text-primary mx-auto mb-2" />
-            <div className="text-xl font-bold text-primary">{weeklyStats.totalCalories}</div>
-            <div className="text-sm text-gray-600">Total Calories</div>
-            <div className="text-xs text-gray-500">Avg: {Math.round(weeklyStats.totalCalories / 7)}/day</div>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <Calendar className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-            <div className="text-xl font-bold text-blue-600">{weeklyStats.mealCount}</div>
-            <div className="text-sm text-gray-600">Meals Planned</div>
-            <div className="text-xs text-gray-500">of 21 total</div>
-          </Card>
-
-          <div className="flex flex-col gap-2">
-            <Button 
-              onClick={generateAIPlan}
-              className="bg-gradient-primary text-sm px-3 py-2"
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              AI Generate
-            </Button>
-            <Button 
-              onClick={clearAllMeals}
-              variant="outline" 
-              size="sm"
-              className="text-sm px-3 py-2"
-            >
-              <RefreshCw className="w-4 h-4 mr-1" />
-              Clear All
-            </Button>
-          </div>
-        </div>
-
-        {/* Weekly Meal Planner */}
-        <Card className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Weekly Meal Planner</h2>
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={generateAIPlan}
-                variant="outline" 
-                size="sm"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate AI Plan
-              </Button>
-              <Badge variant="outline">
-                Week of {new Date().toLocaleDateString()}
-              </Badge>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-            {days.map((day, dayIndex) => (
-              <div key={day} className="border rounded-lg overflow-hidden">
-                {/* Day Header */}
-                <div className="bg-gray-50 p-3 text-center border-b">
-                  <h3 className="font-semibold text-gray-900">{dayLabels[dayIndex]}</h3>
-                  <p className="text-xs text-gray-500">
-                    {new Date(Date.now() + dayIndex * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
-                  </p>
-                </div>
-
-                {/* Meals */}
-                <div className="p-3 space-y-2">
-                  {mealTypes.map(mealType => (
-                    <div key={mealType.key}>
-                      {weeklyPlan[day][mealType.key] ? (
-                        <div className={`p-2 rounded-lg border ${mealType.color}`}>
-                          <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-medium text-xs">
-                              {weeklyPlan[day][mealType.key].name}
-                            </h4>
-                            <button
-                              onClick={() => handleRemoveMeal(day, mealType.key)}
-                              className="text-red-500 hover:text-red-700 ml-1"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                          <div className="text-xs space-y-1">
-                            <div className="flex justify-between">
-                              <span>{weeklyPlan[day][mealType.key].calories} cal</span>
-                              <span>${weeklyPlan[day][mealType.key].cost}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <Clock className="w-3 h-3" />
-                              <span>{weeklyPlan[day][mealType.key].time}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleAddMeal(day, mealType.key)}
-                          className={`w-full p-2 rounded-lg border-2 border-dashed ${mealType.color} transition-colors`}
-                        >
-                          <Plus className="w-3 h-3 mx-auto mb-1" />
-                          <div className="text-xs font-medium">{mealType.label}</div>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        
       </div>
     </div>
   );
