@@ -368,21 +368,21 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
 
             <div className="space-y-6">
               <div className="text-4xl font-bold text-primary">
-                ${preferences.budget[0]}
+                ₹{preferences.budget[0]}
               </div>
               <Slider
                 value={preferences.budget}
                 onValueChange={(value) =>
                   setPreferences((prev) => ({ ...prev, budget: value }))
                 }
-                max={200}
-                min={25}
+                max={5000}
+                min={1000}
                 step={5}
                 className="w-full"
               />
               <div className="flex justify-between text-sm text-warm">
-                <span>$25</span>
-                <span>$200+</span>
+                <span>₹1000</span>
+                <span>₹5000+</span>
               </div>
             </div>
           </div>

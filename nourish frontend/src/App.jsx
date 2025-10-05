@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AuthFlow from './components/AuthFlow';
 import MealPlanDashboard from './components/MealPlanDashboard';
 import Dashboard from './components/Dashboard';
@@ -11,6 +11,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState('meal-plan'); // Add 'meal-customization'
   const [isLoading, setIsLoading] = useState(true);
+  const dashboardRef = useRef(null); 
 
   // Check for existing authentication on app load
   useEffect(() => {
@@ -70,12 +71,11 @@ function App() {
     setCurrentView('meal-plan');
   };
 
-  const handleSaveCustomization = (customizedMeals) => {
-    console.log('💾 Saving customized meals:', customizedMeals);
-    // Here you could save the customized meals to your backend
-    // For now, just go back to meal plan
-    setCurrentView('meal-plan');
-  };
+//   const handleCustomizationSave = (updatedMeals) => {
+//   // Pass the updated meals to the dashboard
+//   setCurrentView('dashboard');
+//   dashboardRef.current?.handleMealPlanUpdate(updatedMeals);
+// };
 
   if (isLoading) {
     return (
@@ -88,11 +88,21 @@ function App() {
     );
   }
 
+  
+  const handleCustomizationSave = (updatedMeals) => {
+    console.log('💾 Saving customized meals:', updatedMeals);
+    setCurrentView('meal-plan');
+    if (dashboardRef.current) {
+      dashboardRef.current.handleMealPlanUpdate(updatedMeals);
+    }
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'meal-plan':
         return (
           <MealPlanDashboard 
+            ref={dashboardRef}
             user={user} 
             onLogout={handleLogout}
             onNavigateToSettings={handleNavigateToSettings}
@@ -100,33 +110,34 @@ function App() {
             onNavigateToCustomization={handleNavigateToCustomization}
           />
         );
+      case 'meal-customization':
+        return (
+          <MealCustomizationPage 
+            user={user}
+            onBack={() => setCurrentView('meal-plan')}
+            onSave={handleCustomizationSave}
+          />
+        );
       case 'settings':
         return (
           <Dashboard 
             user={user} 
             onLogout={handleLogout}
-            onBackToMealPlan={handleBackToMealPlan}
+            onBackToMealPlan={() => setCurrentView('meal-plan')}
           />
         );
-      case 'meal-journal':
+         case 'meal-journal':
         return (
           <MealJournal 
             user={user} 
             onLogout={handleLogout}
-            onBackToMealPlan={handleBackToMealPlan}
-          />
-        );
-      case 'meal-customization':
-        return (
-          <MealCustomizationPage 
-            user={user}
-            onBack={handleBackToMealPlan}
-            onSave={handleSaveCustomization}
+            onBackToMealPlan={() => setCurrentView('meal-plan')}
           />
         );
       default:
         return (
           <MealPlanDashboard 
+            ref={dashboardRef}
             user={user} 
             onLogout={handleLogout}
             onNavigateToSettings={handleNavigateToSettings}

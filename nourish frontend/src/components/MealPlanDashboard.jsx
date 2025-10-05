@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import MealCard from "./MealCard";
+import MealCustomizationPage from "./MealCustomizationPage"; // Assuming this is a valid component
+import RecipeCard from "./RecipeCard"; // Assuming this is a valid component
+import GroceryList from "@/pages/GroceryList"; // Assuming this is a valid component
 import {
   Sparkles,
   ChefHat,
@@ -22,31 +25,139 @@ import {
   Save,
   RefreshCw,
 } from "lucide-react";
-import heroBreakfast from "@/assets/hero-breakfast.jpg";
-import mediterraneanLunch from "@/assets/mediterranean-lunch.jpg";
-import salmonDinner from "@/assets/salmon-dinner.jpg";
+import heroBreakfast from "@/assets/hero-breakfast.png";
+import mediterraneanLunch from "@/assets/velvetpaneer-lunch.png";
+import salmonDinner from "@/assets/littichokha.png";
+
+// Sample Data - This will be replaced by your backend API calls
+const sampleMeals = [
+  {
+    id: 1,
+    title: "Veggie Oats Upma",
+    image: heroBreakfast,
+    category: "Breakfast",
+    cookTime: "15 min",
+    servings: 1,
+    calories: 380,
+    isAiGenerated: true,
+    prepTime: "10 min",
+    difficulty: "Easy",
+    description: "A nutritious and energizing start to your day with superfoods and fresh ingredients.",
+    ingredients: [
+      { id: "1", name: "Quinoa", amount: "1/2 cup", selected: true, category: "Pantry" },
+      { id: "2", name: "Blueberries", amount: "1/2 cup", selected: true, category: "Produce" },
+      { id: "3", name: "Almond milk", amount: "1 cup", selected: true, category: "Dairy" },
+      { id: "4", name: "Chia seeds", amount: "1 tbsp", selected: true, category: "Pantry" },
+      { id: "5", name: "Honey", amount: "1 tbsp", selected: true, category: "Pantry" }
+    ],
+    instructions: [
+      "Cook quinoa according to package directions.",
+      "Let quinoa cool slightly.",
+      "Mix with almond milk and honey.",
+      "Top with blueberries and chia seeds.",
+      "Serve immediately."
+    ]
+  },
+  {
+    id: 2,
+    title: "Velvet Paneer Wraps with Dahi",
+    image: mediterraneanLunch,
+    category: "Lunch",
+    cookTime: "25 min",
+    servings: 2,
+    calories: 420,
+    isAiGenerated: true,
+    prepTime: "15 min",
+    difficulty: "Medium",
+    description: "A vibrant Mediterranean-inspired bowl packed with fresh vegetables and healthy fats.",
+    ingredients: [
+      { id: "6", name: "Chickpeas", amount: "1 can", selected: true, category: "Pantry" },
+      { id: "7", name: "Cherry tomatoes", amount: "1 cup", selected: true, category: "Produce" },
+      { id: "8", name: "Cucumber", amount: "1 medium", selected: true, category: "Produce" },
+      { id: "9", name: "Feta cheese", amount: "1/2 cup", selected: true, category: "Dairy" },
+      { id: "10", name: "Olive oil", amount: "3 tbsp", selected: true, category: "Pantry" }
+    ],
+    instructions: [
+      "Drain and rinse chickpeas.",
+      "Dice cucumber and halve tomatoes.",
+      "Combine all vegetables in a bowl.",
+      "Crumble feta on top.",
+      "Drizzle with olive oil and serve."
+    ]
+  },
+  {
+    id: 3,
+    title: "Rustic Sattu-Stuffed Wheat Balls with Spiced Mash",
+    image: salmonDinner,
+    category: "Dinner",
+    cookTime: "30 min",
+    servings: 2,
+    calories: 485,
+    isAiGenerated: true,
+    prepTime: "15 min",
+    difficulty: "Medium",
+    description: "Perfectly seasoned salmon with a fresh herb crust and roasted seasonal vegetables.",
+    ingredients: [
+      { id: "11", name: "Salmon fillets", amount: "2 (6 oz each)", selected: true, category: "Seafood" },
+      { id: "12", name: "Fresh herbs", amount: "1/4 cup", selected: true, category: "Produce" },
+      { id: "13", name: "Asparagus", amount: "1 lb", selected: true, category: "Produce" },
+      { id: "14", name: "Olive oil", amount: "2 tbsp", selected: true, category: "Pantry" },
+      { id: "15", name: "Garlic", amount: "3 cloves", selected: true, category: "Produce" }
+    ],
+    instructions: [
+      "Preheat oven to 400°F.",
+      "Mix herbs with minced garlic and olive oil.",
+      "Coat salmon with herb mixture.",
+      "Roast salmon and asparagus for 15-20 minutes.",
+      "Serve immediately."
+    ]
+  },
+];
 
 const MealPlanDashboard = ({
   user,
   onLogout,
   onNavigateToSettings,
   onNavigateToMealJournal,
-  onNavigateToCustomization, // Add this new prop
+  onNavigateToCustomization,
 }) => {
   const [currentDay] = useState("Today");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const [currentMeals, setCurrentMeals] = useState(sampleMeals);
 
-  // Weekly Planner State
-  const [weeklyPlan, setWeeklyPlan] = useState({
-    monday: { breakfast: null, lunch: null, dinner: null },
-    tuesday: { breakfast: null, lunch: null, dinner: null },
-    wednesday: { breakfast: null, lunch: null, dinner: null },
-    thursday: { breakfast: null, lunch: null, dinner: null },
-    friday: { breakfast: null, lunch: null, dinner: null },
-    saturday: { breakfast: null, lunch: null, dinner: null },
-    sunday: { breakfast: null, lunch: null, dinner: null },
-  });
+  // States from the first version of the component
+  const [showCustomization, setShowCustomization] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [showRecipeCard, setShowRecipeCard] = useState(false);
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [groceryIngredients, setGroceryIngredients] = useState([]);
+
+  const nutritionStats = {
+    calories: 1285,
+    protein: 85,
+    carbs: 120,
+    fat: 45,
+  };
+
+  // Handlers for the first version's logic
+  const handleRecipeClick = (meal) => {
+    setSelectedRecipe(meal);
+    setShowRecipeCard(true);
+  };
+
+  const handleGenerateGroceryList = (ingredients) => {
+    setGroceryIngredients(ingredients);
+    setCurrentView('grocery');
+    setShowRecipeCard(false);
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentView('dashboard');
+    setShowRecipeCard(false);
+    setSelectedRecipe(null);
+    setGroceryIngredients([]);
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -81,201 +192,35 @@ const MealPlanDashboard = ({
     onLogout();
   };
 
-  // Add customize handler
   const handleCustomize = () => {
     console.log('🎨 Opening meal customization');
     onNavigateToCustomization();
   };
 
-  // Weekly Planner Functions
-  const days = [
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-    "sunday",
-  ];
-  const dayLabels = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
+  if (showCustomization) {
+    return (
+      <MealCustomizationPage
+        onBack={() => setShowCustomization(false)}
+        onSave={(meals) => {
+          console.log('Saved meals:', meals);
+          setShowCustomization(false);
+        }}
+      />
+    );
+  }
 
-  const mealTypes = [
-    {
-      key: "breakfast",
-      label: "Breakfast",
-      color:
-        "bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100",
-    },
-    {
-      key: "lunch",
-      label: "Lunch",
-      color: "bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100",
-    },
-    {
-      key: "dinner",
-      label: "Dinner",
-      color: "bg-green-50 border-green-200 text-green-800 hover:bg-green-100",
-    },
-  ];
-
-  const mealSuggestions = {
-    breakfast: [
-      {
-        name: "Avocado Toast with Eggs",
-        calories: 320,
-        time: "10 min",
-        cost: 4,
-      },
-      { name: "Greek Yogurt Parfait", calories: 280, time: "5 min", cost: 3 },
-      { name: "Overnight Oats", calories: 350, time: "5 min", cost: 2 },
-      { name: "Smoothie Bowl", calories: 290, time: "8 min", cost: 5 },
-    ],
-    lunch: [
-      {
-        name: "Mediterranean Quinoa Bowl",
-        calories: 420,
-        time: "25 min",
-        cost: 8,
-      },
-      { name: "Chicken Caesar Salad", calories: 380, time: "15 min", cost: 9 },
-      { name: "Vegetable Wrap", calories: 340, time: "10 min", cost: 6 },
-      { name: "Lentil Soup", calories: 310, time: "30 min", cost: 4 },
-    ],
-    dinner: [
-      { name: "Herb-Crusted Salmon", calories: 485, time: "30 min", cost: 15 },
-      { name: "Pasta Primavera", calories: 450, time: "25 min", cost: 8 },
-      {
-        name: "Grilled Chicken & Vegetables",
-        calories: 410,
-        time: "35 min",
-        cost: 10,
-      },
-      { name: "Vegetarian Stir Fry", calories: 380, time: "20 min", cost: 7 },
-    ],
-  };
-
-  const handleAddMeal = (day, mealType) => {
-    const suggestions = mealSuggestions[mealType];
-    const randomMeal =
-      suggestions[Math.floor(Math.random() * suggestions.length)];
-
-    setWeeklyPlan((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: randomMeal,
-      },
-    }));
-  };
-
-  const handleRemoveMeal = (day, mealType) => {
-    setWeeklyPlan((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: null,
-      },
-    }));
-  };
-
-  const calculateWeeklyStats = () => {
-    let totalCalories = 0;
-    let totalCost = 0;
-    let mealCount = 0;
-
-    Object.values(weeklyPlan).forEach((day) => {
-      Object.values(day).forEach((meal) => {
-        if (meal) {
-          totalCalories += meal.calories;
-          totalCost += meal.cost;
-          mealCount++;
-        }
-      });
-    });
-
-    return { totalCalories, totalCost, mealCount };
-  };
-
-  const generateAIPlan = () => {
-    const newPlan = { ...weeklyPlan };
-
-    days.forEach((day) => {
-      mealTypes.forEach((mealType) => {
-        const suggestions = mealSuggestions[mealType.key];
-        const randomMeal =
-          suggestions[Math.floor(Math.random() * suggestions.length)];
-        newPlan[day][mealType.key] = randomMeal;
-      });
-    });
-
-    setWeeklyPlan(newPlan);
-  };
-
-  const clearAllMeals = () => {
-    setWeeklyPlan({
-      monday: { breakfast: null, lunch: null, dinner: null },
-      tuesday: { breakfast: null, lunch: null, dinner: null },
-      wednesday: { breakfast: null, lunch: null, dinner: null },
-      thursday: { breakfast: null, lunch: null, dinner: null },
-      friday: { breakfast: null, lunch: null, dinner: null },
-      saturday: { breakfast: null, lunch: null, dinner: null },
-      sunday: { breakfast: null, lunch: null, dinner: null },
-    });
-  };
-
-  const todaysMeals = [
-    {
-      id: 1,
-      title: "Superfood Quinoa Breakfast Bowl",
-      image: heroBreakfast,
-      category: "Breakfast",
-      cookTime: "15 min",
-      servings: 1,
-      calories: 380,
-      isAiGenerated: true,
-    },
-    {
-      id: 2,
-      title: "Mediterranean Veggie Power Bowl",
-      image: mediterraneanLunch,
-      category: "Lunch",
-      cookTime: "25 min",
-      servings: 2,
-      calories: 420,
-      isAiGenerated: true,
-    },
-    {
-      id: 3,
-      title: "Herb-Crusted Salmon & Vegetables",
-      image: salmonDinner,
-      category: "Dinner",
-      cookTime: "30 min",
-      servings: 2,
-      calories: 485,
-      isAiGenerated: true,
-    },
-  ];
-
-  const nutritionStats = {
-    calories: 1285,
-    protein: 85,
-    carbs: 120,
-    fat: 45,
-  };
-
-  const weeklyStats = calculateWeeklyStats();
+  if (currentView === 'grocery') {
+    return (
+      <GroceryList
+        ingredients={groceryIngredients}
+        onBack={handleBackToDashboard}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      {/* Header - Your existing header code */}
+      {/* Header */}
       <div className="bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
@@ -310,7 +255,7 @@ const MealPlanDashboard = ({
               {/* Quick Info (Hidden on mobile) */}
               <div className="hidden md:flex flex-col items-center gap-1 text-sm opacity-90 border-l border-primary-foreground/20 pl-4">
                 <div className="flex items-center gap-1">
-                  <span>${user?.budget || 75}/week</span>
+                  <span>₹{user?.budget || 75}/week</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
@@ -318,7 +263,7 @@ const MealPlanDashboard = ({
                 </div>
               </div>
 
-              {/* Profile Dropdown - Your existing dropdown code */}
+              {/* Profile Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <Button
                   onClick={handleProfileClick}
@@ -339,7 +284,7 @@ const MealPlanDashboard = ({
                   <ChevronDown className="w-4 h-4 opacity-75" />
                 </Button>
 
-                {/* Dropdown Menu - Your existing dropdown */}
+                {/* Dropdown Menu */}
                 {showProfileDropdown && (
                   <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                     {/* User Info Header */}
@@ -364,7 +309,7 @@ const MealPlanDashboard = ({
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="text-center">
                           <p className="font-semibold text-primary">
-                            ${user?.budget || 75}
+                            ₹{user?.budget || 200}
                           </p>
                           <p className="text-xs text-gray-500">Weekly Budget</p>
                         </div>
@@ -376,33 +321,33 @@ const MealPlanDashboard = ({
                         </div>
                       </div>
 
-                      {/* Favorite Cuisines */}
+                      {/* Favorite Cuisines - This was commented out in the original code */}
                       {/* {user?.preferences?.cuisines &&
-                        user.preferences.cuisines.length > 0 && (
-                          <div className="mt-3">
-                            <p className="text-xs text-gray-500 mb-1">
-                              Favorite Cuisines:
-                            </p>
-                            <div className="flex flex-wrap gap-1">
-                              {user.preferences.cuisines
-                                .slice(0, 3)
-                                .map((cuisine) => (
-                                  <Badge
-                                    key={cuisine}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
-                                    {cuisine}
+                          user.preferences.cuisines.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs text-gray-500 mb-1">
+                                Favorite Cuisines:
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {user.preferences.cuisines
+                                  .slice(0, 3)
+                                  .map((cuisine) => (
+                                    <Badge
+                                      key={cuisine}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {cuisine}
+                                    </Badge>
+                                  ))}
+                                {user.preferences.cuisines.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{user.preferences.cuisines.length - 3}
                                   </Badge>
-                                ))}
-                              {user.preferences.cuisines.length > 3 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{user.preferences.cuisines.length - 3}
-                                </Badge>
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )} */}
+                          )} */}
                     </div>
 
                     {/* Menu Items */}
@@ -421,10 +366,6 @@ const MealPlanDashboard = ({
                         <Settings className="w-4 h-4" />
                         Settings & Preferences
                       </button>
-                      {/* <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                        <Bell className="w-4 h-4" />
-                        Notifications
-                      </button> */}
                       <div className="border-t border-gray-100 my-2"></div>
                       <button
                         onClick={handleLogout}
@@ -443,15 +384,15 @@ const MealPlanDashboard = ({
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Welcome Message - Your existing content */}
+        {/* Welcome Message */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-1">
-            Good{" "}
+            Good
             {new Date().getHours() < 12
-              ? "Morning"
+              ? " Morning"
               : new Date().getHours() < 17
-              ? "Afternoon"
-              : "Evening"}
+                ? " Afternoon"
+                : " Evening"}
             , {user?.name || "Chef"}! 👋
           </h2>
           <p className="text-gray-600">
@@ -459,7 +400,7 @@ const MealPlanDashboard = ({
           </p>
         </div>
 
-        {/* Nutritional Snapshot - Your existing content */}
+        {/* Nutritional Snapshot */}
         <Card className="mb-8 p-6 shadow-card border-0">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground">
@@ -497,6 +438,30 @@ const MealPlanDashboard = ({
             </div>
           </div>
         </Card>
+        {/* AI Insights */}
+        <Card className="p-6 bg-white border-2 border-primary text-foreground shadow-md mb-8">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg mb-2 text-primary">Nourish AI Insight</h3>
+              <p className="text-gray-600 mb-4">
+                Hey {user?.name || "Chef"}! You've been loving
+                {user?.preferences?.cuisines?.[0] || " Mediterranean"} flavors
+                lately! Your protein intake is perfectly balanced. How about
+                trying our AI-suggested quinoa pulao for tomorrow's lunch?
+              </p>
+              <Button
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                Explore Suggestion
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         {/* Meal Plans - Updated with working customize button */}
         <div className="mb-8">
@@ -504,7 +469,15 @@ const MealPlanDashboard = ({
             <h2 className="heading-section">Today's Meal Plan</h2>
             <div className="flex gap-2">
               <Button
-                onClick={handleCustomize} // Connect to customize handler
+                onClick={() => handleBackToDashboard}
+                variant="outline"
+                size="sm"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Next Day
+              </Button>
+              <Button
+                onClick={handleCustomize}
                 className="bg-gradient-warm text-accent-foreground border-0"
                 size="sm"
               >
@@ -515,7 +488,7 @@ const MealPlanDashboard = ({
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {todaysMeals.map((meal) => (
+            {currentMeals.map((meal) => (
               <MealCard
                 key={meal.id}
                 title={meal.title}
@@ -526,38 +499,22 @@ const MealPlanDashboard = ({
                 calories={meal.calories}
                 isAiGenerated={meal.isAiGenerated}
                 onClick={() => console.log(`Viewing ${meal.title}`)}
+                onRecipeClick={() => handleRecipeClick(meal)}
               />
             ))}
           </div>
         </div>
-
-        {/* AI Insights - Your existing content */}
-        <Card className="p-6 bg-gradient-primary text-primary-foreground border-0 shadow-glow mb-8">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-primary-foreground/10 rounded-lg">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg mb-2">Nourish AI Insight</h3>
-              <p className="opacity-90 mb-4">
-                Hey {user?.name || "Chef"}! You've been loving{" "}
-                {user?.preferences?.cuisines?.[0] || "Mediterranean"} flavors
-                lately! Your protein intake is perfectly balanced. How about
-                trying our AI-suggested quinoa tabbouleh for tomorrow's lunch?
-              </p>
-              <Button
-                variant="secondary"
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-              >
-                Explore Suggestion
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        
       </div>
+
+      {/* Recipe Card Modal */}
+      {selectedRecipe && (
+        <RecipeCard
+          isOpen={showRecipeCard}
+          onClose={() => setShowRecipeCard(false)}
+          onGenerateGroceryList={handleGenerateGroceryList}
+          recipe={selectedRecipe}
+        />
+      )}
     </div>
   );
 };
