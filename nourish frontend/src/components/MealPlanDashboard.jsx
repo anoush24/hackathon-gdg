@@ -9,6 +9,8 @@ import RecipeCard from "./RecipeCard";
 import GroceryList from "@/pages/GroceryList";
 import MealDetailModal from "./MealDetailModal";
 import GroceryListModal from "./GroceryListModal";
+import RestaurantModal from './RestaurantModal';
+
 import {
   Sparkles,
   ChefHat,
@@ -63,6 +65,13 @@ const MealPlanDashboard = ({
   const [groceryData, setGroceryData] = useState(null);
   const [isLoadingGrocery, setIsLoadingGrocery] = useState(false);
 
+  const [showRestaurantModal, setShowRestaurantModal] = useState(false);
+  const [restaurants, setRestaurants] = useState([]);
+  const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false);
+  
+  const [mealPlanContext, setMealPlanContext] = useState(null);
+
+
   // Fetch today's meals from backend
   useEffect(() => {
     const fetchTodaysMeals = async () => {
@@ -90,6 +99,7 @@ const MealPlanDashboard = ({
         );
 
         console.log('✅ Today\'s meals response:', response.data);
+        setMealPlanContext(response.data.data);
 
         if (response.data.success) {
           const { meals, nutritionStats: stats, weekInfo: info } = response.data.data;
@@ -335,6 +345,51 @@ const handleGetGroceryList = async () => {
   } finally {
     setIsLoadingGrocery(false);
   }
+};
+
+ const handleFindRestaurants = () => {
+  if (!mealPlanContext) {
+    alert("Please generate a meal plan first.");
+    return;
+  }
+
+  setIsLoadingRestaurants(true);
+
+  // Get user's location from the browser
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+
+      const requestBody = {
+        context: mealPlanContext, // Use the saved context
+        location: location,
+        cuisines: user?.preferences?.cuisines || [],
+      };
+
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/restaurants", // Your FastAPI endpoint
+          requestBody
+        );
+        setRestaurants(response.data.restaurants || []);
+        setShowRestaurantModal(true);
+      } catch (err) {
+        console.error("❌ Error fetching restaurants:", err);
+        alert("Could not fetch restaurant recommendations.");
+      } finally {
+        setIsLoadingRestaurants(false);
+      }
+    },
+    (error) => {
+      // Handle errors if user denies location access
+      console.error("Geolocation error:", error);
+      alert("Could not get your location. Please enable location services.");
+      setIsLoadingRestaurants(false);
+    }
+  );
 };
 
   return (
@@ -613,6 +668,23 @@ const handleGetGroceryList = async () => {
     )}
     Grocery List
   </Button>
+
+ <Button
+    onClick={handleFindRestaurants}
+    variant="outline"
+    size="sm"
+    disabled={isLoadingRestaurants || !mealPlanContext}
+  >
+    {isLoadingRestaurants ? (
+      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+    ) : (
+      <ChefHat className="w-4 h-4 mr-2" /> // Or another icon
+    )}
+    Dine Out
+  </Button>
+
+
+
   <Button
     onClick={handleMealJournal}
     variant="outline"
@@ -673,6 +745,18 @@ const handleGetGroceryList = async () => {
           onClose={closeModal}
         />
       )}
+
+      {/*Restaurant Modal */}
+      {showRestaurantModal && (
+      <RestaurantModal
+        restaurants={restaurants}
+        onClose={() => setShowRestaurantModal(false)}
+      />
+    )}
+
+
+
+
       {/* Grocery List Modal */}
 {showGroceryModal && groceryData && (
   <GroceryListModal 
@@ -683,6 +767,8 @@ const handleGetGroceryList = async () => {
 
     </>
   );
+
+
 };
 
 export default MealPlanDashboard;
