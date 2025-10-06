@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -19,186 +19,200 @@ import {
 import freshIngredients from "../assets/fresh-ingredients.jpg";
 import { authService } from "../authBridge";
 
-// Remove the duplicate authService definition - use the imported one only
+const cuisineOptions = [
+  "Mediterranean",
+  "Asian",
+  "Mexican",
+  "Italian",
+  "Indian",
+  "Plant-Based",
+  "Keto",
+  "Paleo",
+  "American",
+  "Middle Eastern",
+];
+
+const goalOptions = [
+  "Lose Weight",
+  "Build Muscle",
+  "Eat More Plants",
+  "Save Time",
+  "Try New Foods",
+  "Eat Healthier",
+  "Family Meals",
+  "Meal Prep",
+];
+
+const allergyOptions = [
+  "Nuts",
+  "Dairy",
+  "Gluten",
+  "Shellfish",
+  "Eggs",
+  "Soy",
+  "Fish",
+  "Sesame",
+  "None",
+];
+
+const initialState = {
+  // Profile
+  name: "",
+  email: "",
+  password: "",
+  // Numeric budget for backend; UI slider can adapt
+  budget: 75,
+  // Structured location aligned with backend schema
+  location: { city: "", state: "", country: "India" },
+  // Preferences aligned with backend schema
+  preferences: {
+    cuisines: [],
+    goals: [],
+    allergies: [],
+    dietaryRestrictions: [], // separate from allergies
+  },
+};
 
 const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [preferences, setPreferences] = useState({
-    cuisines: [],
-    goals: [],
-    allergies: [],
-    budget: [75],
-    location: "",
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [state, setState] = useState(initialState);
 
   const totalSteps = 6;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
-  const cuisineOptions = [
-    "Mediterranean",
-    "Asian",
-    "Mexican",
-    "Italian",
-    "Indian",
-    "Plant-Based",
-    "Keto",
-    "Paleo",
-    "American",
-    "Middle Eastern",
-  ];
+  // Derive a slider-friendly array while keeping source of truth as number
+  const budgetArray = useMemo(() => [state.budget], [state.budget]);
 
-  const goalOptions = [
-    "Lose Weight",
-    "Build Muscle",
-    "Eat More Plants",
-    "Save Time",
-    "Try New Foods",
-    "Eat Healthier",
-    "Family Meals",
-    "Meal Prep",
-  ];
+  const setField = (path, value) => {
+    // minimal immutable update helper for shallow paths
+    setError("");
+    setState((prev) => {
+      const next = { ...prev };
+      if (path.startsWith("location.")) {
+        const key = path.split(".")[1];
+        next.location = { ...prev.location, [key]: value };
+      } else if (path.startsWith("preferences.")) {
+        const key = path.split(".")[1];
+        next.preferences = { ...prev.preferences, [key]: value };
+      } else {
+        next[path] = value;
+      }
+      return next;
+    });
+  };
 
-  const allergyOptions = [
-    "Nuts",
-    "Dairy",
-    "Gluten",
-    "Shellfish",
-    "Eggs",
-    "Soy",
-    "Fish",
-    "Sesame",
-    "None",
-  ];
+  const toggleArrayItem = (arr, val) =>
+    arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
 
   const handleCuisineToggle = (cuisine) => {
-    setError("");
-    setPreferences((prev) => ({
-      ...prev,
-      cuisines: prev.cuisines.includes(cuisine)
-        ? prev.cuisines.filter((c) => c !== cuisine)
-        : [...prev.cuisines, cuisine],
-    }));
+    const updated = toggleArrayItem(state.preferences.cuisines, cuisine);
+    setField("preferences.cuisines", updated);
   };
 
   const handleGoalToggle = (goal) => {
-    setError("");
-    setPreferences((prev) => ({
-      ...prev,
-      goals: prev.goals.includes(goal)
-        ? prev.goals.filter((g) => g !== goal)
-        : [...prev.goals, goal],
-    }));
+    const updated = toggleArrayItem(state.preferences.goals, goal);
+    setField("preferences.goals", updated);
   };
 
   const handleAllergyToggle = (allergy) => {
-    setError("");
-    setPreferences((prev) => ({
-      ...prev,
-      allergies:
-        allergy === "None"
-          ? ["None"]
-          : prev.allergies.includes(allergy)
-          ? prev.allergies.filter((a) => a !== allergy)
-          : prev.allergies.filter((a) => a !== "None").concat(allergy),
-    }));
+    let updated = state.preferences.allergies;
+    if (allergy === "None") {
+      updated = ["None"];
+    } else {
+      // toggle selected allergy and remove "None" if present
+      updated = toggleArrayItem(
+        updated.filter((a) => a !== "None"),
+        allergy
+      );
+    }
+    setField("preferences.allergies", updated);
   };
 
-  const handleInputChange = (field, value) => {
-    setError("");
-    setPreferences((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const validateCurrentStep = () => {
-    let newError = "";
-
+    // return error string or empty
     switch (currentStep) {
       case 0:
-        if (preferences.cuisines.length === 0) {
-          newError = "Please select at least one cuisine.";
-        }
+        if (state.preferences.cuisines.length === 0)
+          return "Please select at least one cuisine.";
         break;
       case 1:
-        if (preferences.goals.length === 0) {
-          newError = "Please select at least one goal.";
-        }
+        if (state.preferences.goals.length === 0)
+          return "Please select at least one goal.";
         break;
       case 2:
-        if (preferences.allergies.length === 0) {
-          newError = "Please select at least one allergy option.";
-        }
+        if (state.preferences.allergies.length === 0)
+          return "Please select at least one allergy option.";
         break;
       case 3:
+        // budget is numeric; enforce bounds if desired
+        if (state.budget < 0) return "Budget cannot be negative.";
         break;
       case 4:
-        if (!preferences.location.trim()) {
-          newError = "Please enter your location.";
-        } else if (preferences.location.trim().length < 2) {
-          newError = "Please enter a valid location.";
-        }
+        if (!state.location.city.trim()) return "Please enter your city.";
+        if (!state.location.state.trim()) return "Please enter your state.";
+        if (!state.location.country.trim()) return "Please enter your country.";
+        if (state.location.city.trim().length < 2)
+          return "Please enter a valid city.";
         break;
       case 5:
-        if (!preferences.name?.trim()) {
-          newError = "Please enter your full name.";
-        } else if (!preferences.email?.trim()) {
-          newError = "Please enter your email address.";
-        } else if (!validateEmail(preferences.email)) {
-          newError = "Please enter a valid email address.";
-        } else if (!preferences.password?.trim()) {
-          newError = "Please enter a password.";
-        } else if (preferences.password.length < 6) {
-          newError = "Password must be at least 6 characters long.";
-        } else if (preferences.name.trim().length < 2) {
-          newError = "Name must be at least 2 characters long.";
-        }
+        if (!state.name?.trim()) return "Please enter your full name.";
+        if (state.name.trim().length < 2)
+          return "Name must be at least 2 characters long.";
+        if (!state.email?.trim()) return "Please enter your email address.";
+        if (!validateEmail(state.email))
+          return "Please enter a valid email address.";
+        if (!state.password?.trim()) return "Please enter a password.";
+        if (state.password.length < 6)
+          return "Password must be at least 6 characters long.";
         break;
       default:
         break;
     }
-
-    return newError;
+    return "";
   };
 
-  const handleRegistration = async (formData) => {
+  const buildPayload = () => {
+    // If dietaryRestrictions not explicitly chosen, infer non-"None" allergies
+    const dietary =
+      state.preferences.dietaryRestrictions.length > 0
+        ? state.preferences.dietaryRestrictions
+        : state.preferences.allergies.filter((a) => a !== "None");
+
+    return {
+      name: state.name.trim(),
+      email: state.email.toLowerCase().trim(),
+      password: state.password,
+      budget: Number.isFinite(state.budget) ? state.budget : 75,
+      location: {
+        city: state.location.city?.trim() || "Unknown",
+        state: state.location.state?.trim() || "Unknown",
+        country: state.location.country?.trim() || "India",
+      },
+      preferences: {
+        cuisines: state.preferences.cuisines,
+        goals: state.preferences.goals,
+        allergies: state.preferences.allergies,
+        dietaryRestrictions: dietary,
+      },
+      // Optional: explicit flags (backend has defaults)
+      isActive: true,
+      lastLogin: new Date(),
+    };
+  };
+
+  const handleRegistration = async () => {
     setIsSubmitting(true);
     setError("");
 
     try {
-      console.log("🚀 Starting registration process...");
+      const userData = buildPayload();
 
-      const locationParts = formData.location.split(",").map((part) => part.trim());
-      const locationObj = {
-        city: locationParts[0] || "Unknown",
-        state: locationParts[1] || "Unknown",
-        country: locationParts[2] || "India",
-      };
-
-      const userData = {
-        name: formData.name.trim(),
-        email: formData.email.toLowerCase().trim(),
-        password: formData.password,
-        budget: formData.budget[0],
-        location: locationObj,
-        preferences: {
-          cuisines: formData.cuisines,
-          goals: formData.goals,
-          allergies: formData.allergies,
-          dietaryRestrictions: formData.allergies.filter((a) => a !== "None"),
-        },
-      };
-
+      // Mask password in console
       console.log("📝 Final user data being sent:", {
         ...userData,
         password: "[HIDDEN]",
@@ -206,29 +220,21 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
 
       const response = await authService.register(userData);
 
-      if (response.success) {
-        console.log("✅ Registration completed successfully");
-        onComplete({
+      if (response?.success) {
+        onComplete?.({
           user: response.user,
-          preferences: formData,
+          preferences: state,
           success: true,
         });
       } else {
-        console.error("❌ Registration response not successful:", response);
-        setError(response.message || "Registration failed. Please try again.");
+        setError(response?.message || "Registration failed. Please try again.");
       }
-    } catch (error) {
-      console.error("❌ Registration error caught:", error);
-
-      let errorMessage = "Registration failed. Please try again.";
-
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.errors && error.errors.length > 0) {
-        errorMessage = error.errors[0];
-      }
-
-      setError(errorMessage);
+    } catch (err) {
+      const message =
+        err?.message ||
+        (err?.errors && err.errors[0]) ||
+        "Registration failed. Please try again.";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -236,25 +242,21 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
 
   const nextStep = () => {
     const validationError = validateCurrentStep();
-
     if (validationError) {
       setError(validationError);
       return;
     }
-
     setError("");
-
     if (currentStep < totalSteps - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((s) => s + 1);
     } else {
-      console.log("🎯 Final step reached, starting registration...");
-      handleRegistration(preferences);
+      handleRegistration();
     }
   };
 
   const prevStep = () => {
     setError("");
-    setCurrentStep(Math.max(0, currentStep - 1));
+    setCurrentStep((s) => Math.max(0, s - 1));
   };
 
   const renderStep = () => {
@@ -274,18 +276,17 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             <p className="text-warm">
               Select the cuisines that make your taste buds dance
             </p>
-
             <div className="grid grid-cols-2 gap-3">
               {cuisineOptions.map((cuisine) => (
                 <Badge
                   key={cuisine}
                   variant={
-                    preferences.cuisines.includes(cuisine)
+                    state.preferences.cuisines.includes(cuisine)
                       ? "default"
                       : "outline"
                   }
                   className={`cursor-pointer p-3 text-sm transition-smooth ${
-                    preferences.cuisines.includes(cuisine)
+                    state.preferences.cuisines.includes(cuisine)
                       ? "bg-gradient-primary text-primary-foreground border-0"
                       : "hover:border-primary"
                   }`}
@@ -297,7 +298,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             </div>
           </div>
         );
-
       case 1:
         return (
           <div className="text-center space-y-6">
@@ -306,16 +306,17 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             <p className="text-warm">
               What brings you to your culinary journey?
             </p>
-
             <div className="grid grid-cols-2 gap-3">
               {goalOptions.map((goal) => (
                 <Badge
                   key={goal}
                   variant={
-                    preferences.goals.includes(goal) ? "default" : "outline"
+                    state.preferences.goals.includes(goal)
+                      ? "default"
+                      : "outline"
                   }
                   className={`cursor-pointer p-3 text-sm transition-smooth ${
-                    preferences.goals.includes(goal)
+                    state.preferences.goals.includes(goal)
                       ? "bg-gradient-warm text-accent-foreground border-0"
                       : "hover:border-secondary"
                   }`}
@@ -327,14 +328,12 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             </div>
           </div>
         );
-
       case 2:
         return (
           <div className="text-center space-y-6">
             <Shield className="w-16 h-16 text-accent mx-auto" />
             <h2 className="heading-section">The Allergy Avoider</h2>
             <p className="text-warm">Help us keep you safe and satisfied</p>
-
             <div className="grid grid-cols-2 gap-3">
               {allergyOptions.map((allergy) => (
                 <div
@@ -344,7 +343,7 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 >
                   <Checkbox
                     id={allergy}
-                    checked={preferences.allergies.includes(allergy)}
+                    checked={state.preferences.allergies.includes(allergy)}
                     onChange={() => handleAllergyToggle(allergy)}
                   />
                   <label
@@ -356,25 +355,41 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 </div>
               ))}
             </div>
+
+            {/* Optional dietary restrictions explicit picker */}
+            <div className="text-left space-y-3 mt-4">
+              <p className="text-sm text-warm">
+                Any other dietary restrictions? (optional)
+              </p>
+              <input
+                type="text"
+                placeholder="e.g., vegan, halal, low-sodium"
+                className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                value={state.preferences.dietaryRestrictions.join(", ")}
+                onChange={(e) => {
+                  const vals = e.target.value
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean);
+                  setField("preferences.dietaryRestrictions", vals);
+                }}
+              />
+            </div>
           </div>
         );
-
       case 3:
         return (
           <div className="text-center space-y-6">
             <DollarSign className="w-16 h-16 text-primary mx-auto" />
             <h2 className="heading-section">Budget Bites</h2>
             <p className="text-warm">What's your weekly grocery budget?</p>
-
             <div className="space-y-6">
               <div className="text-4xl font-bold text-primary">
-                ₹{preferences.budget[0]}
+                ₹{state.budget}
               </div>
               <Slider
-                value={preferences.budget}
-                onValueChange={(value) =>
-                  setPreferences((prev) => ({ ...prev, budget: value }))
-                }
+                value={budgetArray}
+                onValueChange={(value) => setField("budget", value?.[0] ?? 75)}
                 max={5000}
                 min={1000}
                 step={5}
@@ -387,7 +402,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             </div>
           </div>
         );
-
       case 4:
         return (
           <div className="text-center space-y-6">
@@ -397,12 +411,28 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
               Where should we deliver your culinary inspiration?
             </p>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <input
                 type="text"
-                placeholder="Enter your city, state (e.g., Mumbai, Maharashtra)"
-                value={preferences.location}
-                onChange={(e) => handleInputChange("location", e.target.value)}
+                placeholder="City"
+                value={state.location.city}
+                onChange={(e) => setField("location.city", e.target.value)}
+                className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                disabled={isSubmitting}
+              />
+              <input
+                type="text"
+                placeholder="State"
+                value={state.location.state}
+                onChange={(e) => setField("location.state", e.target.value)}
+                className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                disabled={isSubmitting}
+              />
+              <input
+                type="text"
+                placeholder="Country"
+                value={state.location.country}
+                onChange={(e) => setField("location.country", e.target.value)}
                 className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
                 disabled={isSubmitting}
               />
@@ -422,7 +452,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             </Card>
           </div>
         );
-
       case 5:
         return (
           <div className="text-center space-y-6">
@@ -440,8 +469,8 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 <input
                   type="text"
                   placeholder="Enter your full name"
-                  value={preferences.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  value={state.name}
+                  onChange={(e) => setField("name", e.target.value)}
                   className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
                   disabled={isSubmitting}
                 />
@@ -454,8 +483,8 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 <input
                   type="email"
                   placeholder="you@example.com"
-                  value={preferences.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  value={state.email}
+                  onChange={(e) => setField("email", e.target.value)}
                   className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
                   disabled={isSubmitting}
                 />
@@ -468,10 +497,8 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 <input
                   type="password"
                   placeholder="Enter a strong password (min. 6 characters)"
-                  value={preferences.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
+                  value={state.password}
+                  onChange={(e) => setField("password", e.target.value)}
                   className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
                   disabled={isSubmitting}
                 />
@@ -487,7 +514,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             </div>
           </div>
         );
-
       default:
         return null;
     }
@@ -496,7 +522,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl p-8 shadow-warm border-0">
-        {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between text-sm text-warm mb-2">
             <span>
@@ -507,10 +532,8 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
           <Progress value={progress} className="h-2" />
         </div>
 
-        {/* Step Content */}
         <div className="mb-8">{renderStep()}</div>
 
-        {/* Error Message */}
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-700 text-sm font-medium">❌ {error}</p>
@@ -520,7 +543,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
           </div>
         )}
 
-        {/* Navigation */}
         <div className="flex justify-between items-center">
           <Button
             variant="outline"
@@ -555,7 +577,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
           </Button>
         </div>
 
-        {/* Login Switch - Only show if onSwitchToLogin prop is provided */}
         {onSwitchToLogin && (
           <div className="mt-6 text-center">
             <p className="text-sm text-warm">
