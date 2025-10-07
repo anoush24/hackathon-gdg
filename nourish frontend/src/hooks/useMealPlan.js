@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import heroBreakfast from "@/assets/hero-breakfast.png";
-import { authService } from '@/authBridge';
+import heroBreakfast from "../assets/hero-breakfast.png";
+import { authService } from '../authBridge';
+
 
 export const useMealPlan = (user, onLogout) => {
   const [currentMeals, setCurrentMeals] = useState([]);

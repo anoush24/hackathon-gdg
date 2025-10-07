@@ -1,22 +1,37 @@
 import React, { useState } from "react";
-import DashboardHeader from "./DashboardHeader";
-import WelcomeSection from "./WelcomeSection";
-import NutritionSnapshot from "./NutritionSnapshot";
-import AIInsightCard from "./AIInsightCard";
-import TodaysMealPlan from "./TodaysMealPlan";
-import LoadingState from "./LoadingState";
-import ErrorState from "./ErrorState";
-import MealDetailModal from "./MealDetailModal";
-import GroceryListModal from "./GroceryListModal";
-import RestaurantModal from './RestaurantModal';
-import RecipeCard from "./RecipeCard";
-import GroceryList from "@/pages/GroceryList";
-import MealCustomizationPage from "./MealCustomizationPage";
 
-import { useMealPlan } from "@/hooks/useMealPlan";
-import { useModals } from "@/hooks/useModals";
-import { useRestaurants } from "@/hooks/useRestaurants";
-import { useGrocery } from "@/hooks/useGrocery";
+// Layout Components
+import DashboardHeader from "../layout/DashboardHeader";
+import WelcomeSection from "../layout/WelcomeSection";
+import LoadingState from "../layout/LoadingState";
+
+// Nutrition Components
+import NutritionSnapshot from "../nutrition/NutritionSnapshot";
+import AIInsightCard from "../nutrition/AIInsightCard";
+
+// Meal Components
+import TodaysMealPlan from "../meals/TodaysMealPlan";
+import MealDetailModal from "../meals/MealDetailModal";
+
+// Modal Components
+import GroceryListModal from "../modals/GroceryListModal";
+import RestaurantModal from "../modals/RestaurantModal";
+import RecipeCard from "../modals/RecipeCard";
+
+// Shared Components
+import ErrorState from "../shared/ErrorState";
+
+// Pages
+import GroceryList from "../../pages/GroceryList";
+
+// Root components (MealCustomizationPage is in root components folder)
+import MealCustomizationPage from "../MealCustomizationPage";
+
+// Hooks
+import { useMealPlan } from "../../hooks/useMealPlan";
+import { useModals } from "../../hooks/useModals";
+import { useRestaurants } from "../../hooks/useRestaurants";
+import { useGrocery } from "../../hooks/useGrocery";
 
 const MealPlanDashboard = ({
   user,
@@ -214,7 +229,10 @@ const MealPlanDashboard = ({
         <RestaurantModal
           restaurants={restaurants}
           userLocation={userLocation}
-          onClose={() => setShowRestaurantModal(false)}
+          onClose={() => {
+            console.log('🔒 Closing restaurant modal');
+            setShowRestaurantModal(false);
+          }}
         />
       )}
 

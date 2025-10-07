@@ -1,23 +1,30 @@
-import { useState, useMemo } from "react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Progress } from "./ui/progress";
-import { Slider } from "./ui/slider";
-import { Checkbox } from "./ui/checkbox";
-import {
+import React, { useState, useMemo } from "react";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { Slider } from "../ui/slider";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Progress } from "../ui/progress";
+import { 
+  ArrowRight, 
+  ArrowLeft, 
+  MapPin, 
+  DollarSign, 
+  Utensils, 
+  Heart, 
+  AlertTriangle, 
+  Sparkles, 
+  Check,
   ChefHat,
   Target,
   Shield,
-  DollarSign,
-  MapPin,
-  ArrowRight,
-  Sparkles,
   UserCircle,
-  Loader2,
+  Loader2
 } from "lucide-react";
-import freshIngredients from "../assets/fresh-ingredients.jpg";
-import { authService } from "../authBridge";
+import { authService } from "../../authBridge";
+import freshIngredients from "../../assets/fresh-ingredients.jpg";
 
 const cuisineOptions = [
   "Mediterranean",
@@ -550,6 +557,7 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
             disabled={currentStep === 0 || isSubmitting}
             className="flex items-center gap-2"
           >
+            <ArrowLeft className="w-4 h-4" />
             Previous
           </Button>
 

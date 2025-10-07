@@ -1,7 +1,7 @@
-import { useState,useRef, useEffect } from 'react';
-import AuthFlow from './components/AuthFlow';
-import MealPlanDashboard from './components/MealPlanDashboard';
-import Dashboard from './components/Dashboard';
+import { useState, useRef, useEffect } from 'react';
+import AuthFlow from './components/auth/AuthFlow';
+import MealPlanDashboard from './components/dashboard/MealPlanDashboard';
+import Dashboard from './components/dashboard/Dashboard';
 import MealJournal from './components/MealJournal';
 import MealCustomizationPage from './components/MealCustomizationPage'; 
 import { authService } from './authBridge';
@@ -9,36 +9,33 @@ import { authService } from './authBridge';
 function App() {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentView, setCurrentView] = useState('meal-plan'); // Add 'meal-customization'
+  const [currentView, setCurrentView] = useState('meal-plan');
   const [isLoading, setIsLoading] = useState(true);
   const dashboardRef = useRef(null); 
-  
 
   // Check for existing authentication on app load
   useEffect(() => {
-  const checkAuth = () => {
-    try {
-      // Use the improved authentication check
-      if (authService.isAuthenticated()) {
-        const storedUser = authService.getStoredUser();
-        if (storedUser) {
-          setUser(storedUser);
-          setIsAuthenticated(true);
+    const checkAuth = () => {
+      try {
+        if (authService.isAuthenticated()) {
+          const storedUser = authService.getStoredUser();
+          if (storedUser) {
+            setUser(storedUser);
+            setIsAuthenticated(true);
+          }
+        } else {
+          authService.logout();
         }
-      } else {
-        // Clear any invalid tokens
+      } catch (error) {
+        console.error('Auth check failed:', error);
         authService.logout();
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      authService.logout();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  checkAuth();
-}, []);
+    checkAuth();
+  }, []);
 
   const handleAuthSuccess = (userData) => {
     console.log('🔐 Authentication successful:', userData);
@@ -54,8 +51,6 @@ function App() {
     setIsAuthenticated(false);
     setCurrentView('meal-plan');
   };
-
-  
 
   const handleNavigateToSettings = () => {
     console.log('🔧 Navigating to settings');
@@ -78,10 +73,9 @@ function App() {
   };
 
   const handleCustomizationSave = (updatedMeals) => {
-  // Pass the updated meals to the dashboard
-  setCurrentView('dashboard');
-  dashboardRef.current?.handleMealPlanUpdate(updatedMeals);
-};
+    setCurrentView('dashboard');
+    dashboardRef.current?.handleMealPlanUpdate(updatedMeals);
+  };
 
   if (isLoading) {
     return (
@@ -94,10 +88,6 @@ function App() {
     );
   }
 
-  
-
-  
-
   const renderCurrentView = () => {
     switch (currentView) {
       case 'meal-plan':
@@ -105,12 +95,10 @@ function App() {
           <MealPlanDashboard 
              ref={dashboardRef}
             user={user} 
-           
             onLogout={handleLogout}
             onNavigateToSettings={handleNavigateToSettings}
             onNavigateToMealJournal={handleNavigateToMealJournal}
             onNavigateToCustomization={handleNavigateToCustomization}
-            
           />
         );
       case 'meal-customization':
@@ -119,7 +107,6 @@ function App() {
             user={user}
             onBack={() => setCurrentView('meal-plan')}
             onSave={() => {
-              markMealPlanAsStale();
               setCurrentView('meal-plan');
             }}
           />
@@ -130,7 +117,6 @@ function App() {
             user={user} 
             onLogout={handleLogout}
             onBackToMealPlan={() => setCurrentView('meal-plan')}
-            
           />
         );
          case 'meal-journal':
@@ -150,7 +136,6 @@ function App() {
             onNavigateToSettings={handleNavigateToSettings}
             onNavigateToMealJournal={handleNavigateToMealJournal}
             onNavigateToCustomization={handleNavigateToCustomization}
-            isStale={isMealPlanStale}
           />
         );
     }
@@ -165,7 +150,6 @@ function App() {
       )}
     </div>
   );
-  
 }
 
 export default App;

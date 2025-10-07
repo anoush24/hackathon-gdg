@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import LoginForm from "./LoginForm";
 import OnboardingFlow from "./OnBoardingFlow";
-import { authService } from "../authBridge"; // Updated import path
+import { authService } from "../../authBridge"; // Updated import path
 
 const AuthFlow = ({ onAuthSuccess }) => {
   const [authMode, setAuthMode] = useState("login"); // "login" or "signup"

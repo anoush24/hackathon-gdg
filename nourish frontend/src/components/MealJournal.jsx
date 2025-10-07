@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Loader2, ArrowLeft, LogOut, BookOpen, Clock, RefreshCw, Calendar } from 'lucide-react';
-import MealDetailModal from './MealDetailModal'; // Import the modal
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Loader2, ArrowLeft, LogOut, BookOpen, Clock, RefreshCw, Calendar } from "lucide-react";
+import MealDetailModal from "./meals/MealDetailModal";
+import { authService } from "../authBridge";
+import axios from "axios";
 
 const MealJournal = ({ user, onLogout, onBackToMealPlan }) => {
   const [weeklyPlan, setWeeklyPlan] = useState(null);

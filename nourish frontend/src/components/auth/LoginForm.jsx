@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import { authService } from "../authBridge";
+import { authService } from "../../authBridge";
 
 const LoginForm = ({ onLoginSuccess, onSwitchToSignup }) => {
   const [formData, setFormData] = useState({

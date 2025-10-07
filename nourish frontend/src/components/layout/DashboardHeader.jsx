@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 import { Sparkles, MapPin } from "lucide-react";
-import ProfileDropdown from './ProfileDropdown';
+import ProfileDropdown from "../dashboard/ProfileDropdown";
 
 const DashboardHeader = ({ 
   user, 
