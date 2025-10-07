@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState,useRef, useEffect } from 'react';
 import AuthFlow from './components/AuthFlow';
 import MealPlanDashboard from './components/MealPlanDashboard';
 import Dashboard from './components/Dashboard';
 import MealJournal from './components/MealJournal';
-import MealCustomizationPage from './components/MealCustomizationPage'; // Import customization page
+import MealCustomizationPage from './components/MealCustomizationPage'; 
 import { authService } from './authBridge';
 
 function App() {
@@ -12,6 +12,7 @@ function App() {
   const [currentView, setCurrentView] = useState('meal-plan'); // Add 'meal-customization'
   const [isLoading, setIsLoading] = useState(true);
   const dashboardRef = useRef(null); 
+  
 
   // Check for existing authentication on app load
   useEffect(() => {
@@ -51,6 +52,8 @@ function App() {
     setCurrentView('meal-plan');
   };
 
+  
+
   const handleNavigateToSettings = () => {
     console.log('🔧 Navigating to settings');
     setCurrentView('settings');
@@ -71,11 +74,11 @@ function App() {
     setCurrentView('meal-plan');
   };
 
-//   const handleCustomizationSave = (updatedMeals) => {
-//   // Pass the updated meals to the dashboard
-//   setCurrentView('dashboard');
-//   dashboardRef.current?.handleMealPlanUpdate(updatedMeals);
-// };
+  const handleCustomizationSave = (updatedMeals) => {
+  // Pass the updated meals to the dashboard
+  setCurrentView('dashboard');
+  dashboardRef.current?.handleMealPlanUpdate(updatedMeals);
+};
 
   if (isLoading) {
     return (
@@ -89,25 +92,22 @@ function App() {
   }
 
   
-  const handleCustomizationSave = (updatedMeals) => {
-    console.log('💾 Saving customized meals:', updatedMeals);
-    setCurrentView('meal-plan');
-    if (dashboardRef.current) {
-      dashboardRef.current.handleMealPlanUpdate(updatedMeals);
-    }
-  };
+
+  
 
   const renderCurrentView = () => {
     switch (currentView) {
       case 'meal-plan':
         return (
           <MealPlanDashboard 
-            ref={dashboardRef}
+             ref={dashboardRef}
             user={user} 
+           
             onLogout={handleLogout}
             onNavigateToSettings={handleNavigateToSettings}
             onNavigateToMealJournal={handleNavigateToMealJournal}
             onNavigateToCustomization={handleNavigateToCustomization}
+            
           />
         );
       case 'meal-customization':
@@ -115,7 +115,10 @@ function App() {
           <MealCustomizationPage 
             user={user}
             onBack={() => setCurrentView('meal-plan')}
-            onSave={handleCustomizationSave}
+            onSave={() => {
+              markMealPlanAsStale();
+              setCurrentView('meal-plan');
+            }}
           />
         );
       case 'settings':
@@ -124,6 +127,7 @@ function App() {
             user={user} 
             onLogout={handleLogout}
             onBackToMealPlan={() => setCurrentView('meal-plan')}
+            
           />
         );
          case 'meal-journal':
@@ -143,6 +147,7 @@ function App() {
             onNavigateToSettings={handleNavigateToSettings}
             onNavigateToMealJournal={handleNavigateToMealJournal}
             onNavigateToCustomization={handleNavigateToCustomization}
+            isStale={isMealPlanStale}
           />
         );
     }
@@ -157,6 +162,7 @@ function App() {
       )}
     </div>
   );
+  
 }
 
 export default App;

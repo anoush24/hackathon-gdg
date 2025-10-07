@@ -32,7 +32,7 @@ const MealPlanDashboard = ({
   onLogout,
   onNavigateToSettings,
   onNavigateToMealJournal,
-  onNavigateToCustomization,
+  onNavigateToCustomization
 }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -48,6 +48,13 @@ const MealPlanDashboard = ({
     fat: 0,
   });
   const [weekInfo, setWeekInfo] = useState(null);
+
+  const [consumedNutrition, setConsumedNutrition] = useState({
+  calories: 0,
+  protein: 0,
+  carbs: 0,
+  fat: 0,
+});
 
   // Modal states
   const [selectedMeal, setSelectedMeal] = useState(null);
@@ -70,6 +77,10 @@ const MealPlanDashboard = ({
   const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false);
   
   const [mealPlanContext, setMealPlanContext] = useState(null);
+
+  const [userLocation, setUserLocation] = useState(null);
+
+  
 
 
   // Fetch today's meals from backend
@@ -104,10 +115,15 @@ const MealPlanDashboard = ({
         if (response.data.success) {
           const { meals, nutritionStats: stats, weekInfo: info } = response.data.data;
 
+
+          
+
           // Transform meals to match MealCard format
           const transformedMeals = [];
+          const initialConsumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
           if (meals.breakfast) {
+            const mealData = meals.breakfast; 
             transformedMeals.push({
               id: 'breakfast',
               title: meals.breakfast.name,
@@ -132,11 +148,19 @@ const MealPlanDashboard = ({
               carbs: meals.breakfast.carbs,
               fat: meals.breakfast.fat,
               youtube_link: meals.breakfast.youtube_link,
+              isCompleted: mealData.isCompleted || false,
               _rawData: meals.breakfast
             });
+            if (mealData.isCompleted) {
+            initialConsumed.calories += mealData.calories || 0;
+            initialConsumed.protein += mealData.protein || 0;
+            initialConsumed.carbs += mealData.carbs || 0;
+            initialConsumed.fat += mealData.fat || 0;
+          }
           }
 
           if (meals.lunch) {
+            const mealData = meals.lunch; 
             transformedMeals.push({
               id: 'lunch',
               title: meals.lunch.name,
@@ -161,11 +185,19 @@ const MealPlanDashboard = ({
               carbs: meals.lunch.carbs,
               fat: meals.lunch.fat,
               youtube_link: meals.lunch.youtube_link,
+              isCompleted: mealData.isCompleted || false,
               _rawData: meals.lunch
             });
+            if (mealData.isCompleted) {
+            initialConsumed.calories += mealData.calories || 0;
+            initialConsumed.protein += mealData.protein || 0;
+            initialConsumed.carbs += mealData.carbs || 0;
+            initialConsumed.fat += mealData.fat || 0;
+          }
           }
 
           if (meals.dinner) {
+            const mealData = meals.dinner; 
             transformedMeals.push({
               id: 'dinner',
               title: meals.dinner.name,
@@ -190,13 +222,23 @@ const MealPlanDashboard = ({
               carbs: meals.dinner.carbs,
               fat: meals.dinner.fat,
               youtube_link: meals.dinner.youtube_link,
+              isCompleted: mealData.isCompleted || false,
               _rawData: meals.dinner
             });
+            if (mealData.isCompleted) {
+            initialConsumed.calories += mealData.calories || 0;
+            initialConsumed.protein += mealData.protein || 0;
+            initialConsumed.carbs += mealData.carbs || 0;
+            initialConsumed.fat += mealData.fat || 0;
+          }
+
+
           }
 
           setCurrentMeals(transformedMeals);
           setNutritionStats(stats);
           setWeekInfo(info);
+          setConsumedNutrition(initialConsumed);
         }
       } catch (err) {
         console.error("❌ Error fetching today's meals:", err);
@@ -218,6 +260,7 @@ const MealPlanDashboard = ({
       fetchTodaysMeals();
     }
   }, [user, onLogout]);
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -347,7 +390,8 @@ const handleGetGroceryList = async () => {
   }
 };
 
- const handleFindRestaurants = () => {
+
+const handleFindRestaurants = () => {
   if (!mealPlanContext) {
     alert("Please generate a meal plan first.");
     return;
@@ -355,23 +399,24 @@ const handleGetGroceryList = async () => {
 
   setIsLoadingRestaurants(true);
 
-  // Get user's location from the browser
   navigator.geolocation.getCurrentPosition(
     async (position) => {
       const location = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
+  
+      setUserLocation(location); 
 
       const requestBody = {
-        context: mealPlanContext, // Use the saved context
+        context: mealPlanContext,
         location: location,
         cuisines: user?.preferences?.cuisines || [],
       };
 
       try {
         const response = await axios.post(
-          "http://localhost:8000/restaurants", // Your FastAPI endpoint
+          "http://localhost:8000/restaurants",
           requestBody
         );
         setRestaurants(response.data.restaurants || []);
@@ -384,13 +429,54 @@ const handleGetGroceryList = async () => {
       }
     },
     (error) => {
-      // Handle errors if user denies location access
       console.error("Geolocation error:", error);
-      alert("Could not get your location. Please enable location services.");
+      alert("Could not get your location. Please enable location services in your browser.");
       setIsLoadingRestaurants(false);
     }
   );
 };
+
+
+
+const handleToggleMealComplete = async (mealId) => {
+  const mealToUpdate = currentMeals.find(meal => meal.id === mealId);
+  if (!mealToUpdate) return;
+
+  const newCompletedStatus = !mealToUpdate.isCompleted;
+
+  //  meal nutrition change
+  const updatedMeals = currentMeals.map(meal =>
+    meal.id === mealId ? { ...meal, isCompleted: newCompletedStatus } : meal
+  );
+  
+  const newTotals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  updatedMeals.forEach(meal => {
+    if (meal.isCompleted) {
+      newTotals.calories += meal.calories || 0;
+      newTotals.protein += meal.protein || 0;
+      newTotals.carbs += meal.carbs || 0;
+      newTotals.fat += meal.fat || 0;
+    }
+  });
+  
+  setCurrentMeals(updatedMeals);
+  setConsumedNutrition(newTotals);
+
+  // send change to backend
+  try {
+    const token = localStorage.getItem('token');
+    await axios.patch(
+      `http://localhost:5000/api/meal-plans/today/${mealId}/complete`,
+      { isCompleted: newCompletedStatus },
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+  } catch (error) {
+    console.error("Failed to save meal status:", error);
+    alert("Failed to save your progress. Please try again.");
+    
+  }
+};
+
 
   return (
     <>
@@ -600,25 +686,29 @@ const handleGetGroceryList = async () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      {nutritionStats.calories}
+                      {Math.round(consumedNutrition.calories)}g
+                      <span className="text-lg text-gray-400 font-normal"> / {nutritionStats.calories}g</span>
                     </div>
                     <div className="text-sm text-warm">Calories</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-secondary">
-                      {nutritionStats.protein}g
+                      {Math.round(consumedNutrition.protein)}g
+                      <span className="text-lg text-gray-400 font-normal"> / {nutritionStats.protein}g</span>
                     </div>
                     <div className="text-sm text-warm">Protein</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-accent">
-                      {nutritionStats.carbs}g
+                      {Math.round(consumedNutrition.carbs)}g
+                      <span className="text-lg text-gray-400 font-normal"> / {nutritionStats.carbs}g</span>
                     </div>
                     <div className="text-sm text-warm">Carbs</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-muted-foreground">
-                      {nutritionStats.fat}g
+                       {Math.round(consumedNutrition.fat)}g
+                      <span className="text-lg text-gray-400 font-normal"> / {nutritionStats.fat}g</span>
                     </div>
                     <div className="text-sm text-warm">Fat</div>
                   </div>
@@ -717,6 +807,8 @@ const handleGetGroceryList = async () => {
                       isAiGenerated={meal.isAiGenerated}
                       onClick={() => handleRecipeClick(meal)}
                       onRecipeClick={() => handleRecipeClick(meal)}
+                      isCompleted={meal.isCompleted}
+                      onToggleComplete={() => handleToggleMealComplete(meal.id)}
                     />
                   ))}
                 </div>
@@ -750,12 +842,10 @@ const handleGetGroceryList = async () => {
       {showRestaurantModal && (
       <RestaurantModal
         restaurants={restaurants}
+        userLocation={userLocation}
         onClose={() => setShowRestaurantModal(false)}
       />
     )}
-
-
-
 
       {/* Grocery List Modal */}
 {showGroceryModal && groceryData && (
