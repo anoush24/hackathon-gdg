@@ -1,13 +1,8 @@
-// authBridge.js
 export const authService = {
   register: async (userData) => {
     try {
       console.log('🔗 AuthBridge: Making registration request to backend...');
-      console.log('📦 Sending user data:', {
-        ...userData,
-        password: '[HIDDEN]'
-      });
-
+      
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: {
@@ -16,20 +11,15 @@ export const authService = {
         body: JSON.stringify(userData),
       });
 
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response ok:', response.ok);
-      
-
       const data = await response.json();
-      console.log('📦 Full Response data:', JSON.stringify(data, null, 2));
 
       if (response.ok && data.success) {
         console.log('✅ Registration successful');
-        localStorage.setItem('token', data.token);
+        // Store token with Bearer prefix
+        localStorage.setItem('token', `Bearer ${data.token}`);
         localStorage.setItem('user', JSON.stringify(data.user));
         return { success: true, ...data };
       } else {
-        console.error('❌ Registration failed with data:', JSON.stringify(data, null, 2));
         throw {
           success: false,
           message: data.message || 'Registration failed',
@@ -43,13 +33,6 @@ export const authService = {
         throw {
           success: false,
           message: 'Cannot connect to server. Make sure your backend is running on http://localhost:5000'
-        };
-      }
-
-      if (error.name === 'SyntaxError') {
-        throw {
-          success: false,
-          message: 'Server returned invalid response. Check server logs.'
         };
       }
 
@@ -73,14 +56,15 @@ export const authService = {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials:'include',
+        credentials: 'include',
         body: JSON.stringify(credentials),
       });
 
       const data = await response.json();
       
       if (response.ok && data.success) {
-        localStorage.setItem('token', data.token);
+        // Store token with Bearer prefix
+        localStorage.setItem('token', `Bearer ${data.token}`);
         localStorage.setItem('user', JSON.stringify(data.user));
         return { success: true, ...data };
       } else {
@@ -109,7 +93,7 @@ export const authService = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token.replace('Bearer ', '')}`
+            'Authorization': token // Already has Bearer prefix
           },
         });
       }
@@ -121,8 +105,44 @@ export const authService = {
     }
   },
 
+  // Add token validation method
+  isTokenValid: () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    try {
+      // Extract JWT payload
+      const base64Url = token.split('.')[1];
+      if (!base64Url) return false;
+      
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const { exp } = JSON.parse(jsonPayload);
+      const currentTime = Date.now() / 1000;
+      
+      return exp > currentTime;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return false;
+    }
+  },
+
   isAuthenticated: () => {
-    return !!(localStorage.getItem('token') && localStorage.getItem('user'));
+    const hasToken = !!localStorage.getItem('token');
+    const hasUser = !!localStorage.getItem('user');
+    const tokenValid = authService.isTokenValid();
+    
+    if (hasToken && hasUser && !tokenValid) {
+      // Token expired, clear storage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return false;
+    }
+    
+    return hasToken && hasUser && tokenValid;
   },
 
   getStoredUser: () => {
@@ -132,5 +152,13 @@ export const authService = {
     } catch (error) {
       return null;
     }
+  },
+
+  // Add method to get valid token
+  getValidToken: () => {
+    if (authService.isAuthenticated()) {
+      return localStorage.getItem('token');
+    }
+    return null;
   }
 };

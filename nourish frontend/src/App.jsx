@@ -16,26 +16,29 @@ function App() {
 
   // Check for existing authentication on app load
   useEffect(() => {
-    const checkAuth = () => {
-      try {
-        if (authService.isAuthenticated()) {
-          const storedUser = authService.getStoredUser();
-          if (storedUser) {
-            setUser(storedUser);
-            setIsAuthenticated(true);
-          }
+  const checkAuth = () => {
+    try {
+      // Use the improved authentication check
+      if (authService.isAuthenticated()) {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          setUser(storedUser);
+          setIsAuthenticated(true);
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } finally {
-        setIsLoading(false);
+      } else {
+        // Clear any invalid tokens
+        authService.logout();
       }
-    };
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      authService.logout();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    checkAuth();
-  }, []);
+  checkAuth();
+}, []);
 
   const handleAuthSuccess = (userData) => {
     console.log('🔐 Authentication successful:', userData);
