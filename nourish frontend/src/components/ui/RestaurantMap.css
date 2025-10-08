@@ -1,0 +1,19 @@
+
+.themed-popup .leaflet-popup-content-wrapper {
+  background: #f6e6dbf5; 
+  color: #065f46; 
+  border-radius: 8px;
+  border: 1px solid #f6b698; 
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.themed-popup .leaflet-popup-tip {
+  background: #ecfdf5;
+}
+
+.themed-popup .leaflet-popup-content {
+  margin: 12px !important;
+  font-family: 'Inter', sans-serif; /* Or whichever font your app uses */
+  font-size: 14px;
+  line-height: 1.5;
+}

@@ -1,6 +1,6 @@
 // src/components/GroceryListModal.jsx
 import React, { useState } from 'react';
-import { X, ShoppingCart, Check, Printer, Download } from 'lucide-react';
+import { X, ShoppingCart, Check, Printer, Download, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -48,6 +48,25 @@ const GroceryListModal = ({ groceryData, onClose }) => {
 
   const checkedCount = Object.values(checkedItems).filter(Boolean).length;
 
+  const handleShareToWhatsApp = () => {
+    let message = `*Grocery List for ${groceryData.day}*\n\n`;
+
+    Object.keys(groceryData.groceryList).forEach(category => {
+      message += `*${category}:*\n`; 
+      const items = groceryData.groceryList[category];
+      
+      items.forEach(item => {
+        message += `- ${item}\n`;
+      });
+      message += '\n'; 
+    });
+
+    const encodedMessage = encodeURIComponent(message);
+
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <Card className="max-w-3xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-2xl">
@@ -86,6 +105,10 @@ const GroceryListModal = ({ groceryData, onClose }) => {
           <Button onClick={handleDownload} variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
             Download
+          </Button>
+          <Button onClick={handleShareToWhatsApp} className="bg-green-500 hover:bg-green-600">
+            <Share className="w-4 h-4 mr-2" />
+            Share
           </Button>
         </div>
 
