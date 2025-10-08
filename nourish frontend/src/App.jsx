@@ -5,6 +5,18 @@ import Dashboard from './components/dashboard/Dashboard';
 import MealJournal from './components/MealJournal';
 import MealCustomizationPage from './components/MealCustomizationPage'; 
 import { authService } from './authBridge';
+import axios from 'axios';
+
+axios.interceptors.request.use(
+  (config) => {
+    const token = authService.getValidToken();
+    if (token) {
+      config.headers.Authorization = token;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 function App() {
   const [user, setUser] = useState(null);

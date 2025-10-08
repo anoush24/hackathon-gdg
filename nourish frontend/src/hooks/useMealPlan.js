@@ -3,6 +3,7 @@ import axios from 'axios';
 import heroBreakfast from "../assets/hero-breakfast.png";
 import { authService } from '../authBridge';
 
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export const useMealPlan = (user, onLogout) => {
   const [currentMeals, setCurrentMeals] = useState([]);
@@ -29,7 +30,7 @@ export const useMealPlan = (user, onLogout) => {
     if (!token) {
       throw new Error("No valid authentication token found");
     }
-    
+
     return {
       'Authorization': token, // Already includes Bearer prefix
       'Content-Type': 'application/json'
@@ -37,98 +38,82 @@ export const useMealPlan = (user, onLogout) => {
   };
 
   const fetchTodaysMeals = async () => {
-    try {
-      setIsLoadingMeals(true);
-      setMealsError(null);
+  try {
+    setIsLoadingMeals(true);
+    setMealsError(null);
 
-      // Check if user is still authenticated
-      if (!authService.isAuthenticated()) {
-        throw new Error("Authentication required");
-      }
-
-      const headers = getAuthHeaders();
-      console.log('📤 Fetching today\'s meals with headers:', { 
-        ...headers, 
-        Authorization: headers.Authorization.substring(0, 20) + '...' 
-      });
-
-      const response = await axios.get(
-        "http://localhost:5000/api/meal-plans/today",
-        { headers }
-      );
-
-      console.log('✅ Today\'s meals response:', response.data);
-      setMealPlanContext(response.data.data);
-
-      if (response.data.success) {
-        const { meals, nutritionStats: stats, weekInfo: info } = response.data.data;
-
-        const transformedMeals = [];
-        const initialConsumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-
-        ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
-          if (meals[mealType]) {
-            const mealData = meals[mealType];
-            const mealId = mealType;
-            
-            transformedMeals.push({
-              id: mealId,
-              title: mealData.name,
-              image: mealData.image_url || heroBreakfast,
-              category: mealType.charAt(0).toUpperCase() + mealType.slice(1),
-              cookTime: mealData.cookTime || "20 min",
-              servings: mealType === 'breakfast' ? 1 : 2,
-              calories: mealData.calories,
-              isAiGenerated: true,
-              prepTime: "10 min",
-              difficulty: "Easy",
-              description: `${mealType === 'breakfast' ? 'Start your day' : mealType === 'lunch' ? 'Enjoy' : 'Savor'} ${mealData.name}`,
-              ingredients: mealData.ingredients?.map((ing, idx) => ({
-                id: `${mealId}-${idx}`,
-                name: ing,
-                amount: "",
-                selected: true,
-                category: "Pantry"
-              })) || [],
-              instructions: [],
-              protein: mealData.protein,
-              carbs: mealData.carbs,
-              fat: mealData.fat,
-              youtube_link: mealData.youtube_link,
-              isCompleted: mealData.isCompleted || false,
-              _rawData: mealData
-            });
-
-            if (mealData.isCompleted) {
-              initialConsumed.calories += mealData.calories || 0;
-              initialConsumed.protein += mealData.protein || 0;
-              initialConsumed.carbs += mealData.carbs || 0;
-              initialConsumed.fat += mealData.fat || 0;
-            }
-          }
-        });
-
-        setCurrentMeals(transformedMeals);
-        setNutritionStats(stats);
-        setWeekInfo(info);
-        setConsumedNutrition(initialConsumed);
-      }
-    } catch (err) {
-      console.error("❌ Error fetching today's meals:", err);
-
-      if (err.response?.status === 404 && err.response?.data?.needsGeneration) {
-        setMealsError("noplan");
-      } else if (err.response?.status === 401 || err.message === "Authentication required") {
-        console.log("🔓 Authentication failed, logging out user");
-        authService.logout();
-        onLogout?.();
-      } else {
-        setMealsError(err.response?.data?.message || err.message || "Failed to load meals");
-      }
-    } finally {
-      setIsLoadingMeals(false);
+    const token = authService.getValidToken();
+    if (!token) {
+      console.log('🔓 No valid token, logging out');
+      onLogout();
+      return;
     }
-  };
+
+    const response = await axios.get(`${API_BASE_URL}/meal-plans/today`, {
+      headers: {
+        'Authorization': token
+      }
+    });
+
+    console.log('📥 Backend response:', response.data); // Add this for debugging
+
+    if (response.data && response.data.success) {
+      // Handle successful response - Updated data path
+      const meals = response.data.mealPlan?.meals || []; 
+      console.log('🍽️ Parsed meals:', meals); // Add this for debugging
+      
+      setCurrentMeals(meals);
+
+      // Calculate nutrition stats
+      const totalNutrition = meals.reduce((totals, meal) => ({
+        calories: totals.calories + (meal.calories || 0),
+        protein: totals.protein + (meal.protein || 0),
+        carbs: totals.carbs + (meal.carbs || 0),
+        fat: totals.fat + (meal.fat || 0),
+      }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+      setNutritionStats(totalNutrition);
+
+      // Calculate consumed nutrition (completed meals only)
+      const consumedTotals = meals.reduce((totals, meal) => {
+        if (meal.isCompleted) {
+          return {
+            calories: totals.calories + (meal.calories || 0),
+            protein: totals.protein + (meal.protein || 0),
+            carbs: totals.carbs + (meal.carbs || 0),
+            fat: totals.fat + (meal.fat || 0),
+          };
+        }
+        return totals;
+      }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+      setConsumedNutrition(consumedTotals);
+
+      // Set week info
+      if (response.data.weekInfo) {
+        setWeekInfo(response.data.weekInfo);
+      }
+
+      // Set meal plan context
+      if (response.data.mealPlan) {
+        setMealPlanContext(response.data.mealPlan);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error fetching today\'s meals:', error);
+
+    if (error.response?.status === 401) {
+      console.log('🔓 Authentication failed, logging out user');
+      authService.clearAuth();
+      onLogout();
+      return;
+    }
+
+    setMealsError('Failed to fetch meal plan');
+  } finally {
+    setIsLoadingMeals(false);
+  }
+};
 
   const toggleMealComplete = async (mealId) => {
     const mealToUpdate = currentMeals.find(meal => meal.id === mealId);
@@ -140,7 +125,7 @@ export const useMealPlan = (user, onLogout) => {
     const updatedMeals = currentMeals.map(meal =>
       meal.id === mealId ? { ...meal, isCompleted: newCompletedStatus } : meal
     );
-    
+
     const newTotals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
     updatedMeals.forEach(meal => {
       if (meal.isCompleted) {
@@ -150,7 +135,7 @@ export const useMealPlan = (user, onLogout) => {
         newTotals.fat += meal.fat || 0;
       }
     });
-    
+
     setCurrentMeals(updatedMeals);
     setConsumedNutrition(newTotals);
 
@@ -164,7 +149,7 @@ export const useMealPlan = (user, onLogout) => {
       console.log('📤 Updating meal completion status:', { mealId, isCompleted: newCompletedStatus });
 
       await axios.patch(
-        `http://localhost:5000/api/meal-plans/today/${mealId}/complete`,
+        `${API_BASE_URL}/meal-plans/today/${mealId}/complete`, // Fixed: use API_BASE_URL constant
         { isCompleted: newCompletedStatus },
         { headers }
       );
@@ -172,11 +157,11 @@ export const useMealPlan = (user, onLogout) => {
       console.log('✅ Meal status updated successfully');
     } catch (error) {
       console.error("❌ Failed to save meal status:", error);
-      
+
       // Revert optimistic update on failure
       setCurrentMeals(currentMeals);
       setConsumedNutrition(consumedNutrition);
-      
+
       if (error.response?.status === 401 || error.message === "Authentication required") {
         console.log("🔓 Authentication failed during meal update, logging out user");
         authService.logout();

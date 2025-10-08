@@ -86,35 +86,45 @@ export const authService = {
   },
 
   logout: async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Only attempt logout call if we have a valid token format
+      if (token.startsWith('Bearer ')) {
         await fetch('http://localhost:5000/api/auth/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token // Already has Bearer prefix
+            'Authorization': token
           },
         });
       }
-    } catch (error) {
-      console.error('❌ Logout error:', error);
-    } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
     }
-  },
+  } catch (error) {
+    // Silently handle logout errors - still clear local storage
+    console.warn('⚠️ Logout request failed, but clearing local storage:', error);
+  } finally {
+    // Always clear local storage regardless of server response
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+},
 
-  // Add token validation method
+  // Fixed token validation method
   isTokenValid: () => {
     const token = localStorage.getItem('token');
     if (!token) return false;
     
     try {
-      // Extract JWT payload
-      const base64Url = token.split('.')[1];
-      if (!base64Url) return false;
+      // Remove Bearer prefix for JWT validation
+      const jwtToken = token.startsWith('Bearer ') ? token.slice(7) : token;
       
+      // Check if it's a valid JWT format
+      const parts = jwtToken.split('.');
+      if (parts.length !== 3) return false;
+      
+      // Extract JWT payload
+      const base64Url = parts[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
@@ -133,16 +143,22 @@ export const authService = {
   isAuthenticated: () => {
     const hasToken = !!localStorage.getItem('token');
     const hasUser = !!localStorage.getItem('user');
+    
+    if (!hasToken || !hasUser) {
+      return false;
+    }
+    
     const tokenValid = authService.isTokenValid();
     
-    if (hasToken && hasUser && !tokenValid) {
+    if (!tokenValid) {
       // Token expired, clear storage
+      console.log('🔓 Token expired, clearing storage');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       return false;
     }
     
-    return hasToken && hasUser && tokenValid;
+    return true;
   },
 
   getStoredUser: () => {
@@ -160,5 +176,11 @@ export const authService = {
       return localStorage.getItem('token');
     }
     return null;
+  },
+
+  // Add method to clear expired auth
+  clearAuth: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
 };

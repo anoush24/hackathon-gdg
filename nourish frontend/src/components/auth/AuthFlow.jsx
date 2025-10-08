@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import LoginForm from "./LoginForm";
 import OnboardingFlow from "./OnBoardingFlow";
-import { authService } from "../../authBridge"; // Updated import path
+import { authService } from "../../authBridge";
 
 const AuthFlow = ({ onAuthSuccess }) => {
   const [authMode, setAuthMode] = useState("login"); // "login" or "signup"
@@ -9,28 +9,33 @@ const AuthFlow = ({ onAuthSuccess }) => {
 
   // Check if user is already authenticated
   useEffect(() => {
-    const checkExistingAuth = async () => {
-      try {
-        if (authService.isAuthenticated()) {
-          const user = authService.getStoredUser();
-          if (user) {
-            console.log('✅ User already authenticated:', user.email);
-            onAuthSuccess(user);
-            return;
-          }
+  const checkExistingAuth = async () => {
+    try {
+      console.log('🔍 Checking existing authentication...');
+      
+      // First check if we have valid auth
+      if (authService.isAuthenticated()) {
+        const user = authService.getStoredUser();
+        if (user) {
+          console.log('✅ User already authenticated:', user.email);
+          onAuthSuccess(user);
+          return;
         }
-      } catch (error) {
-        console.log('❌ Auth check failed:', error);
-        // Clear invalid data
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } finally {
-        setIsCheckingAuth(false);
       }
-    };
+      
+      // If no valid auth, clear any stale data
+      console.log('❌ No valid authentication found');
+      authService.clearAuth();
+    } catch (error) {
+      console.log('❌ Auth check failed:', error);
+      authService.clearAuth();
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
 
-    checkExistingAuth();
-  }, [onAuthSuccess]);
+  checkExistingAuth();
+}, [onAuthSuccess]);
 
   const handleLoginSuccess = (user) => {
     console.log('🎉 Login successful, user:', user);
