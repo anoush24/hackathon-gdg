@@ -1,10 +1,10 @@
-// src/components/MealDetailModal.jsx
 import React from 'react';
-import { X, Clock, Flame, Dumbbell, Cookie, Droplet, ExternalLink } from 'lucide-react';
+import { X, Clock, Flame, Dumbbell, Cookie, Droplet, ExternalLink, PlayCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
-const MealDetailModal = ({ meal, mealType, day, onClose }) => {
+const MealDetailModal = ({ meal, mealType, day, onClose, onViewRecipe }) => {
   if (!meal) return null;
 
   return (
@@ -12,11 +12,19 @@ const MealDetailModal = ({ meal, mealType, day, onClose }) => {
       <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-start z-10">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{meal.name}</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {day} • {mealType}
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{meal.title}</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {day} • {mealType || meal.category}
+              </p>
+            </div>
+            {meal.isAiGenerated && (
+              <Badge className="bg-gradient-primary text-primary-foreground border-0">
+                <Sparkles className="w-3 h-3 mr-1" />
+                AI-Generated
+              </Badge>
+            )}
           </div>
           <Button 
             onClick={onClose} 
@@ -29,13 +37,15 @@ const MealDetailModal = ({ meal, mealType, day, onClose }) => {
         </div>
 
         {/* Image */}
-        {meal.image_url && (
+        {meal.image && (
           <div className="w-full h-64 overflow-hidden">
             <img 
-              src={meal.image_url} 
-              alt={meal.name}
+              src={meal.image} 
+              alt={meal.title}
               className="w-full h-full object-cover"
-              onError={(e) => { e.target.src = 'https://via.placeholder.com/800x400?text=No+Image'; }}
+              onError={(e) => { 
+                e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'; 
+              }}
             />
           </div>
         )}
@@ -71,40 +81,56 @@ const MealDetailModal = ({ meal, mealType, day, onClose }) => {
             </div>
           </div>
 
-          {/* Ingredients */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              📋 Ingredients
-            </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <ul className="space-y-2">
-                {meal.ingredients && meal.ingredients.map((ingredient, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-primary mt-1">•</span>
-                    <span className="text-gray-700">{ingredient}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* Cook Time and Servings */}
+          <div className="grid grid-cols-2 gap-4">
+            {meal.cookTime && (
+              <div className="flex items-center gap-2 text-gray-600 bg-gray-50 rounded-lg p-3">
+                <Clock className="w-5 h-5" />
+                <div>
+                  <span className="font-medium">Cook Time:</span>
+                  <p className="text-sm">{meal.cookTime}</p>
+                </div>
+              </div>
+            )}
+            {meal.servings && (
+              <div className="flex items-center gap-2 text-gray-600 bg-gray-50 rounded-lg p-3">
+                <Dumbbell className="w-5 h-5" />
+                <div>
+                  <span className="font-medium">Servings:</span>
+                  <p className="text-sm">{meal.servings}</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Cook Time (if available) */}
-          {meal.cookTime && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <Clock className="w-5 h-5" />
-              <span className="font-medium">Prep Time:</span>
-              <span>{meal.cookTime}</span>
+          {/* Ingredients */}
+          {meal.ingredients && meal.ingredients.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                📋 Ingredients
+              </h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <ul className="space-y-2">
+                  {meal.ingredients.map((ingredient, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-primary mt-1">•</span>
+                      <span className="text-gray-700">{ingredient}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
           {/* YouTube Link */}
-          {meal.youtube_link && (
+          {meal.youtubeLink && (
             <div>
               <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                🎥 Video Tutorial
+                <PlayCircle className="w-5 h-5 text-red-500" />
+                Video Tutorial
               </h3>
               <a
-                href={meal.youtube_link}
+                href={meal.youtubeLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
@@ -113,7 +139,7 @@ const MealDetailModal = ({ meal, mealType, day, onClose }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="bg-red-500 text-white p-2 rounded-lg">
-                        <ExternalLink className="w-6 h-6" />
+                        <PlayCircle className="w-6 h-6" />
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">Watch Recipe Video</p>
@@ -126,6 +152,25 @@ const MealDetailModal = ({ meal, mealType, day, onClose }) => {
               </a>
             </div>
           )}
+
+          {/* Meal Status */}
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Meal Status</h3>
+                <p className="text-sm text-gray-600">
+                  {meal.isCompleted ? 'You have completed this meal!' : 'Mark as completed when finished'}
+                </p>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                meal.isCompleted 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {meal.isCompleted ? 'Completed ✅' : 'Pending ⏳'}
+              </div>
+            </div>
+          </div>
 
           {/* Macros Summary */}
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
@@ -148,7 +193,15 @@ const MealDetailModal = ({ meal, mealType, day, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t p-4 flex justify-end">
+        <div className="sticky bottom-0 bg-gray-50 border-t p-4 flex justify-between">
+          <Button 
+            onClick={() => onViewRecipe && onViewRecipe(meal)} 
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <PlayCircle className="w-4 h-4" />
+            View Recipe & Generate Grocery List
+          </Button>
           <Button onClick={onClose} variant="default">
             Close
           </Button>

@@ -7,8 +7,36 @@ import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Clock, Users, X, Loader2 } from "lucide-react";
 
 const RecipeCard = ({ isOpen, onClose, onGenerateGroceryList, recipe }) => {
-  const [ingredients, setIngredients] = useState(recipe.ingredients);
+  // Add null checks and safe initialization
+  if (!recipe) {
+    return null;
+  }
+
+  // Process ingredients safely - convert string array to object array
+  const processedIngredients = (recipe.ingredients || []).map((ingredient, index) => ({
+    id: index,
+    name: ingredient,
+    amount: "1x",
+    selected: true
+  }));
+
+  const [ingredients, setIngredients] = useState(processedIngredients);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Process instructions - your data has 'recipe' field, not 'instructions'
+  const getInstructions = () => {
+    if (recipe.recipe && recipe.recipe.trim()) {
+      return recipe.recipe.split('\n').filter(line => line.trim());
+    }
+    return [
+      "Prepare all ingredients as listed above.",
+      "Follow standard cooking instructions for this dish.",
+      "Cook until done and serve hot.",
+      "Enjoy your meal!"
+    ];
+  };
+
+  const instructions = getInstructions();
 
   const handleIngredientToggle = (ingredientId) => {
     setIngredients(prev =>
@@ -38,9 +66,12 @@ const RecipeCard = ({ isOpen, onClose, onGenerateGroceryList, recipe }) => {
           {/* Hero Image */}
           <div className="relative h-80 w-full overflow-hidden">
             <img
-              src={recipe.image}
-              alt={recipe.title}
+              src={recipe.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'}
+              alt={recipe.title || 'Recipe'}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400';
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
             <Button
@@ -53,7 +84,7 @@ const RecipeCard = ({ isOpen, onClose, onGenerateGroceryList, recipe }) => {
             </Button>
             <div className="absolute top-4 left-4">
               <Badge className="bg-gradient-primary text-primary-foreground border-0">
-                {recipe.category}
+                {recipe.category || 'Main Dish'}
               </Badge>
             </div>
           </div>
@@ -61,25 +92,25 @@ const RecipeCard = ({ isOpen, onClose, onGenerateGroceryList, recipe }) => {
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-320px)]">
             <DialogHeader className="mb-6">
-              <h1 className="text-3xl font-bold text-foreground mb-2">{recipe.title}</h1>
-              <p className="text-muted-foreground text-lg mb-4">{recipe.description}</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{recipe.title || 'Recipe'}</h1>
+              <p className="text-muted-foreground text-lg mb-4">{recipe.description || 'Delicious meal recipe'}</p>
 
               {/* Recipe Stats */}
               <div className="flex items-center gap-6 text-sm text-warm">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Prep: {recipe.prepTime}</span>
+                  <span>Prep: {recipe.prepTime || '15 mins'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Cook: {recipe.cookTime}</span>
+                  <span>Cook: {recipe.cookTime || '30 mins'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  <span>Serves {recipe.servings}</span>
+                  <span>Serves {recipe.servings || '2'}</span>
                 </div>
                 <div className="text-primary font-medium">
-                  {recipe.calories} cal/serving
+                  {recipe.calories || '400'} cal/serving
                 </div>
               </div>
             </DialogHeader>
@@ -113,7 +144,7 @@ const RecipeCard = ({ isOpen, onClose, onGenerateGroceryList, recipe }) => {
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-4">Instructions</h2>
                 <div className="space-y-4">
-                  {recipe.instructions.map((instruction, index) => (
+                  {instructions.map((instruction, index) => (
                     <div key={index} className="flex gap-3">
                       <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
                         {index + 1}

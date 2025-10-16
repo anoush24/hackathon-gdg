@@ -2,9 +2,10 @@ import React from 'react';
 import MealCard from './MealCard';
 import MealPlanActions from './MealPlanActions';
 
-const TodaysMealPlan = ({ 
-  currentMeals, 
-  onMealClick, 
+const TodaysMealPlan = ({
+  currentMeals,
+  onMealClick,
+  onRecipeClick,
   onToggleMealComplete,
   onGetGroceryList,
   onFindRestaurants,
@@ -40,9 +41,9 @@ const TodaysMealPlan = ({
             servings={meal.servings}
             calories={meal.calories}
             isAiGenerated={meal.isAiGenerated}
-            onClick={() => onMealClick(meal)}
-            onRecipeClick={() => onMealClick(meal)}
             isCompleted={meal.isCompleted}
+            onClick={() => onMealClick(meal, meal.type, 'Today')}    // 🔥 Opens MealDetailModal
+            onRecipeClick={() => onRecipeClick(meal)}                // 🔥 Opens RecipeCard
             onToggleComplete={() => onToggleMealComplete(meal.id)}
           />
         ))}

@@ -9,15 +9,18 @@ export const useModals = () => {
   const [showGroceryModal, setShowGroceryModal] = useState(false);
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
 
-  const openMealDetail = (meal) => {
-    if (meal._rawData) {
-      setSelectedMeal(meal._rawData);
-      setSelectedDay(new Date().toLocaleDateString('en-US', { weekday: 'long' }));
-      setSelectedMealType(meal.category);
-    } else {
-      setSelectedRecipe(meal);
-      setShowRecipeCard(true);
-    }
+
+  const openMealDetail = (meal, mealType, day) => {
+    setSelectedMeal(meal);        // 🔥 For MealDetailModal
+    setSelectedMealType(mealType);
+    setSelectedDay(day);
+    // Don't set recipe state here!
+  };
+
+  const openRecipeCard = (recipe) => {
+    setSelectedRecipe(recipe);    // 🔥 For RecipeCard
+    setShowRecipeCard(true);
+    // Don't set meal state here!
   };
 
   const closeMealDetail = () => {
@@ -48,9 +51,10 @@ export const useModals = () => {
     showRecipeCard,
     showGroceryModal,
     showRestaurantModal,
-    
+
     // Actions
     openMealDetail,
+    openRecipeCard,
     closeMealDetail,
     closeRecipeCard,
     setShowGroceryModal,

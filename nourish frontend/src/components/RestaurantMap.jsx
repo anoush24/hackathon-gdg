@@ -3,26 +3,23 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { User, Utensils } from 'lucide-react'; // Import icons you like
+import { User, Utensils } from 'lucide-react';
 import './ui/RestaurantMap.css';
 
-// --- NEW: Custom User Icon ---
-// We create a custom SVG icon using your app's green theme color.
+// Custom User Icon
 const userIcon = L.divIcon({
   html: renderToStaticMarkup(
     <div className="p-1.5 bg-green-500 rounded-full shadow-md">
       <User className="w-4 h-4 text-white" />
     </div>
   ),
-  className: '', // We can leave this empty
+  className: '',
   iconSize: [30, 30],
-  iconAnchor: [15, 15], // Center the icon
+  iconAnchor: [15, 15],
   popupAnchor: [0, -15],
 });
 
-
-// --- NEW: Custom Restaurant Icon ---
-// We do the same for restaurants, using a teal theme color.
+// Custom Restaurant Icon
 const restaurantIcon = L.divIcon({
   html: renderToStaticMarkup(
     <div className="p-1.5 bg-orange-600 rounded-full shadow-md">
@@ -35,41 +32,80 @@ const restaurantIcon = L.divIcon({
   popupAnchor: [0, -15],
 });
 
-
 const RestaurantMap = ({ restaurants, userLocation }) => {
+  // Filter out restaurants with invalid coordinates
+  const validRestaurants = restaurants.filter(r => {
+    const hasValidCoords = r.lat && r.lng && 
+                          !isNaN(r.lat) && !isNaN(r.lng) &&
+                          Math.abs(r.lat) <= 90 && Math.abs(r.lng) <= 180;
+    
+    if (!hasValidCoords) {
+      console.warn('Invalid restaurant coordinates:', r.name, r.lat, r.lng);
+    }
+    return hasValidCoords;
+  });
+
+  console.log('🗺️ Map Debug:', {
+    totalRestaurants: restaurants.length,
+    validRestaurants: validRestaurants.length,
+    userLocation,
+    sampleRestaurant: validRestaurants[0]
+  });
+
   const mapCenter = userLocation
     ? [userLocation.lat, userLocation.lng]
-    : (restaurants.length > 0 ? [restaurants[0].lat, restaurants[0].lng] : [19.15, 72.99]);
+    : (validRestaurants.length > 0 
+        ? [validRestaurants[0].lat, validRestaurants[0].lng] 
+        : [19.15, 72.99]);
 
   return (
     <div className="h-64 md:h-80 w-full rounded-lg overflow-hidden border-2 border-green-100 shadow-sm">
-      <MapContainer center={mapCenter} zoom={14} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-        {/* --- UPDATED: New TileLayer for a cleaner look --- */}
+      <MapContainer 
+        center={mapCenter} 
+        zoom={13} 
+        scrollWheelZoom={false} 
+        style={{ height: '100%', width: '100%' }}
+      >
         <TileLayer
-         attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-         url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Marker for the user's location with the new custom icon */}
+        {/* User location marker */}
         {userLocation && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
-            <Popup className="themed-popup">Your Location</Popup>
+            <Popup className="themed-popup">
+              <div className="font-sans">
+                <b className="text-green-700">Your Location</b>
+              </div>
+            </Popup>
           </Marker>
         )}
 
-        {/* Markers for each restaurant with the new custom icon */}
-        {restaurants.map(restaurant => (
-          <Marker key={restaurant.id} position={[restaurant.lat, restaurant.lng]} icon={restaurantIcon}>
-            {/* --- UPDATED: Added a className to the Popup for styling --- */}
+        {/* Restaurant markers */}
+        {validRestaurants.map((restaurant, index) => (
+          <Marker 
+            key={restaurant.id || index} 
+            position={[parseFloat(restaurant.lat), parseFloat(restaurant.lng)]} 
+            icon={restaurantIcon}
+          >
             <Popup className="themed-popup">
               <div className="font-sans">
                 <b className="text-orange-800">{restaurant.name}</b><br />
-                {restaurant.address}
+                <span className="text-xs text-gray-600">{restaurant.address}</span><br />
+                <span className="text-xs">⭐ {restaurant.rating}/5</span>
               </div>
             </Popup>
           </Marker>
         ))}
       </MapContainer>
+      
+      {/* Debug info */}
+      {validRestaurants.length === 0 && restaurants.length > 0 && (
+        <div className="absolute bottom-2 left-2 bg-yellow-100 text-yellow-800 text-xs p-2 rounded">
+          ⚠️ No valid coordinates found for restaurants
+        </div>
+      )}
     </div>
   );
 };

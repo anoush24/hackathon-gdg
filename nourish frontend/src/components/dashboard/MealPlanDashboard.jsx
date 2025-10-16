@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef, useImperativeHandle} from "react";
 
 // Layout Components
 import DashboardHeader from "../layout/DashboardHeader";
@@ -32,6 +32,7 @@ import { useMealPlan } from "../../hooks/useMealPlan";
 import { useModals } from "../../hooks/useModals";
 import { useRestaurants } from "../../hooks/useRestaurants";
 import { useGrocery } from "../../hooks/useGrocery";
+import InsightsCard from "../nutrition/InsightsCard";
 
 const MealPlanDashboard = ({
   user,
@@ -39,7 +40,7 @@ const MealPlanDashboard = ({
   onNavigateToSettings,
   onNavigateToMealJournal,
   onNavigateToCustomization
-}) => {
+}, ref) => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [groceryIngredients, setGroceryIngredients] = useState([]);
   const [showCustomization, setShowCustomization] = useState(false);
@@ -54,9 +55,14 @@ const MealPlanDashboard = ({
     consumedNutrition,
     mealPlanContext,
     toggleMealComplete,
-    refetchMeals
+    refetchMeals,
+    refetchMealsWithNewPreferences
   } = useMealPlan(user, onLogout);
 
+  useImperativeHandle(ref, () => ({
+    refetchMealsWithNewPreferences
+  }));
+  
   const {
     selectedMeal,
     selectedDay,
@@ -66,6 +72,7 @@ const MealPlanDashboard = ({
     showGroceryModal,
     showRestaurantModal,
     openMealDetail,
+    openRecipeCard,
     closeMealDetail,
     closeRecipeCard,
     setShowGroceryModal,
@@ -183,15 +190,12 @@ const MealPlanDashboard = ({
                 nutritionStats={nutritionStats}
               />
 
-              <AIInsightCard 
-                user={user}
-                nutritionStats={nutritionStats}
-                onNavigateToMealJournal={onNavigateToMealJournal}
-              />
+              <InsightsCard/>
 
               <TodaysMealPlan 
                 currentMeals={currentMeals}
                 onMealClick={openMealDetail}
+                onRecipeClick={openRecipeCard} 
                 onToggleMealComplete={toggleMealComplete}
                 onGetGroceryList={handleGetGroceryList}
                 onFindRestaurants={handleFindRestaurants}
@@ -222,6 +226,10 @@ const MealPlanDashboard = ({
           mealType={selectedMealType}
           day={selectedDay}
           onClose={closeMealDetail}
+          onViewRecipe={(meal) => {               // 🔥 ADD THIS
+            closeMealDetail();                     // Close meal detail
+            openRecipeCard(meal);                  // Open recipe card
+          }}
         />
       )}
 

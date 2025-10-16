@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AuthFlow from './components/auth/AuthFlow';
 import MealPlanDashboard from './components/dashboard/MealPlanDashboard';
 import Dashboard from './components/dashboard/Dashboard';
@@ -18,14 +19,12 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-function App() {
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentView, setCurrentView] = useState('meal-plan');
   const [isLoading, setIsLoading] = useState(true);
-  const dashboardRef = useRef(null); 
 
-  // Check for existing authentication on app load
   useEffect(() => {
     const checkAuth = () => {
       try {
@@ -49,46 +48,6 @@ function App() {
     checkAuth();
   }, []);
 
-  const handleAuthSuccess = (userData) => {
-    console.log('🔐 Authentication successful:', userData);
-    setUser(userData);
-    setIsAuthenticated(true);
-    setCurrentView('meal-plan');
-  };
-
-  const handleLogout = () => {
-    console.log('👋 User logging out');
-    authService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
-    setCurrentView('meal-plan');
-  };
-
-  const handleNavigateToSettings = () => {
-    console.log('🔧 Navigating to settings');
-    setCurrentView('settings');
-  };
-
-  const handleNavigateToMealJournal = () => {
-    console.log('📖 Navigating to meal journal');
-    setCurrentView('meal-journal');
-  };
-
-  const handleNavigateToCustomization = () => {
-    console.log('🎨 Navigating to meal customization');
-    setCurrentView('meal-customization');
-  };
-
-  const handleBackToMealPlan = () => {
-    console.log('🍽️ Navigating back to meal plan');
-    setCurrentView('meal-plan');
-  };
-
-  const handleCustomizationSave = (updatedMeals) => {
-    setCurrentView('dashboard');
-    dashboardRef.current?.handleMealPlanUpdate(updatedMeals);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
@@ -100,66 +59,132 @@ function App() {
     );
   }
 
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case 'meal-plan':
-        return (
-          <MealPlanDashboard 
-             ref={dashboardRef}
-            user={user} 
-            onLogout={handleLogout}
-            onNavigateToSettings={handleNavigateToSettings}
-            onNavigateToMealJournal={handleNavigateToMealJournal}
-            onNavigateToCustomization={handleNavigateToCustomization}
-          />
-        );
-      case 'meal-customization':
-        return (
-          <MealCustomizationPage 
-            user={user}
-            onBack={() => setCurrentView('meal-plan')}
-            onSave={() => {
-              setCurrentView('meal-plan');
-            }}
-          />
-        );
-      case 'settings':
-        return (
-          <Dashboard 
-            user={user} 
-            onLogout={handleLogout}
-            onBackToMealPlan={() => setCurrentView('meal-plan')}
-          />
-        );
-         case 'meal-journal':
-        return (
-          <MealJournal 
-            user={user} 
-            onLogout={handleLogout}
-            onBackToMealPlan={() => setCurrentView('meal-plan')}
-          />
-        );
-      default:
-        return (
-          <MealPlanDashboard 
-            ref={dashboardRef}
-            user={user} 
-            onLogout={handleLogout}
-            onNavigateToSettings={handleNavigateToSettings}
-            onNavigateToMealJournal={handleNavigateToMealJournal}
-            onNavigateToCustomization={handleNavigateToCustomization}
-          />
-        );
-    }
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children(user, setUser);
+};
+
+// Main App Component
+function App() {
+  const navigate = useNavigate();
+  const dashboardRef = useRef(null);
+
+  const handleAuthSuccess = (userData) => {
+    console.log('🔐 Authentication successful:', userData);
+    navigate('/dashboard');
+  };
+
+  const handleLogout = () => {
+    console.log('👋 User logging out');
+    authService.logout();
+    navigate('/login');
+  };
+
+  const handlePreferencesUpdated = async (newPreferences, setUser) => {
+    console.log('🔄 Preferences updated, refreshing user data...');
+    
+    // Update user object with new preferences
+    setUser(prevUser => ({
+      ...prevUser,
+      preferences: newPreferences
+    }));
+
+    // Wait a moment for backend to complete operations
+    setTimeout(() => {
+      console.log('🔄 Triggering meal plan refresh...');
+      // Trigger meal plan refresh in dashboard
+      if (dashboardRef.current?.refetchMealsWithNewPreferences) {
+        dashboardRef.current.refetchMealsWithNewPreferences();
+      }
+    }, 2000);
   };
 
   return (
     <div className="App">
-      {isAuthenticated && user ? (
-        renderCurrentView()
-      ) : (
-        <AuthFlow onAuthSuccess={handleAuthSuccess} />
-      )}
+      <Routes>
+        {/* Public Routes */}
+        <Route 
+          path="/login" 
+          element={
+            authService.isAuthenticated() ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <AuthFlow onAuthSuccess={handleAuthSuccess} />
+            )
+          } 
+        />
+
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              {(user, setUser) => (
+                <MealPlanDashboard 
+                  ref={dashboardRef}
+                  user={user} 
+                  onLogout={handleLogout}
+                  onNavigateToSettings={() => navigate('/settings')}
+                  onNavigateToMealJournal={() => navigate('/journal')}
+                  onNavigateToCustomization={() => navigate('/customize')}
+                />
+              )}
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              {(user, setUser) => (
+                <Dashboard 
+                  user={user} 
+                  onLogout={handleLogout}
+                  onBackToMealPlan={() => navigate('/dashboard')}
+                  onPreferencesUpdated={(newPrefs) => handlePreferencesUpdated(newPrefs, setUser)}
+                />
+              )}
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/journal" 
+          element={
+            <ProtectedRoute>
+              {(user, setUser) => (
+                <MealJournal 
+                  user={user} 
+                  onLogout={handleLogout}
+                  onBackToMealPlan={() => navigate('/dashboard')}
+                />
+              )}
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/customize" 
+          element={
+            <ProtectedRoute>
+              {(user, setUser) => (
+                <MealCustomizationPage 
+                  user={user}
+                  onBack={() => navigate('/dashboard')}
+                  onSave={() => navigate('/dashboard')}
+                />
+              )}
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Redirect Routes */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
     </div>
   );
 }

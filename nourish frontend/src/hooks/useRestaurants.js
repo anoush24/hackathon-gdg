@@ -33,24 +33,40 @@ export const useRestaurants = () => {
         "http://localhost:8000/restaurants",
         requestBody,
         {
-          timeout: 10000, // 10 second timeout
+          timeout: 15000,
           headers: {
             'Content-Type': 'application/json'
           }
         }
       );
 
-      console.log('✅ Restaurant response:', response.data);
+      console.log('✅ Full response:', response.data);
 
-      if (response.data && response.data.restaurants) {
-        setRestaurants(response.data.restaurants);
-        return { success: true, restaurants: response.data.restaurants };
+      // Handle different response structures
+      let restaurantList = [];
+      
+      if (response.data) {
+        // Try different possible structures
+        if (Array.isArray(response.data.restaurants)) {
+          restaurantList = response.data.restaurants;
+        } else if (response.data.restaurants && Array.isArray(response.data.restaurants.restaurants)) {
+          restaurantList = response.data.restaurants.restaurants;
+        } else if (Array.isArray(response.data)) {
+          restaurantList = response.data;
+        }
+      }
+
+      console.log('📍 Parsed restaurants:', restaurantList);
+
+      if (restaurantList.length > 0) {
+        setRestaurants(restaurantList);
+        return { success: true, restaurants: restaurantList };
       } else {
         throw new Error("No restaurants found in response");
       }
     } catch (err) {
       console.error("❌ Error fetching restaurants:", err);
-      const errorMessage = err.response?.data?.message || err.message || "Could not fetch restaurant recommendations.";
+      const errorMessage = err.response?.data?.detail || err.response?.data?.message || err.message || "Could not fetch restaurants.";
       setError(errorMessage);
       alert(errorMessage);
       return { success: false, error: err };
@@ -98,7 +114,7 @@ export const useRestaurants = () => {
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
+          timeout: 10000,
           maximumAge: 0
         }
       );

@@ -36,7 +36,10 @@ export const useMealPlan = (user, onLogout) => {
       'Content-Type': 'application/json'
     };
   };
-
+  const refetchMealsWithNewPreferences = async () => {
+    console.log('🔄 Refreshing meals with updated preferences...');
+    await fetchTodaysMeals();
+  };
   const fetchTodaysMeals = async () => {
   try {
     setIsLoadingMeals(true);
@@ -188,6 +191,7 @@ export const useMealPlan = (user, onLogout) => {
     consumedNutrition,
     mealPlanContext,
     toggleMealComplete,
-    refetchMeals: fetchTodaysMeals
+    refetchMeals: fetchTodaysMeals,
+    refetchMealsWithNewPreferences
   };
 };
