@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChefHat, Loader2, Sparkles } from 'lucide-react';
+import DineOutBackground from '../../assets/DineOutBg2.png';
 
 const DineOutSection = ({ id, onFindRestaurants, isLoading }) => {
   return (
@@ -17,14 +18,23 @@ const DineOutSection = ({ id, onFindRestaurants, isLoading }) => {
         </div>
 
         {/* Content with Button */}
-        <div className="bg-white rounded-xl p-8 border border-orange-200 shadow-sm">
-          <div className="flex items-center justify-center flex-col gap-6 py-8">
-            <Sparkles className="w-20 h-20 text-orange-400" />
+        <div className="bg-white rounded-xl p-8 border border-orange-200 shadow-sm relative overflow-hidden"
+        style={{
+            backgroundImage: `url(${DineOutBackground})`, // Use the imported variable
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundColor: 'white', // Keep a fallback/default color
+            
+          }}>
+            <div className="absolute inset-10 bg-black/55 rounded-xl"></div>
+            
+          <div className="relative z-10 flex items-center justify-center flex-col gap-6 py-8">
+            <Sparkles className="w-20 h-20 text-white" />
             <div className="text-center max-w-md">
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              <h3 className="text-2xl font-bold text-white mb-2">
                 Ready to Explore?
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-200 mb-6">
                 Discover amazing restaurants near you that match your meal preferences and dietary goals!
               </p>
               

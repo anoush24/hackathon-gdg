@@ -1,5 +1,6 @@
 import React from 'react';
 import { UtensilsCrossed, ChefHat } from 'lucide-react';
+import HeroBackground from '../../assets/herobgveg5.png';
 
 const WelcomeSection = ({ user, weekInfo, onScrollToMeals, scrollToDineOut  }) => {
   const getGreeting = () => {
@@ -10,14 +11,26 @@ const WelcomeSection = ({ user, weekInfo, onScrollToMeals, scrollToDineOut  }) =
   };
 
   return (
-    <div className="mb-12">
-      <div className="flex items-center justify-between gap-8 max-w-8xl mx-auto">
+   <div className="mb-12 relative h-[700px] bg-white/10">
+      <div 
+            className="absolute inset-0 z-0 pointer-events-none" 
+            style={{
+                backgroundImage: `url(${HeroBackground})`,
+                backgroundRepeat: 'repeat', 
+                opacity: 1, // Adjust this value (0.05 to 0.2 works well) for faintness
+                
+            }}
+        />
+
+
+
+      <div className="flex items-center justify-between gap-8 max-w-8xl mx-auto relative z-10">
         {/* Left Side - Bowl Image */}
-        <div className="flex-shrink-0 ml-20 w-1/3">
+        <div className="flex-shrink-0  w-1/3">
           <img
             src="/main_keto_bowl2.png"
             alt="Fresh salad bowl"
-            className="w-full h-full ml-20 mb-1 -my-10 object-contain max-w-md drop-shadow-2xl animate-float"
+            className="w-full h-full ml-20 mb-1 mt-10 object-contain max-w-md drop-shadow-2xl animate-float"
           />
         </div>
 
