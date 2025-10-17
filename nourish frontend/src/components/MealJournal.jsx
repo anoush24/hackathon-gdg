@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, ArrowLeft, LogOut, BookOpen, Clock, RefreshCw, Calendar } from "lucide-react";
 import MealDetailModal from "./meals/MealDetailModal";
+import NutritionSnapshot from "./nutrition/NutritionSnapshot";
 import { authService } from "../authBridge";
 import axios from "axios";
+import { useMealPlan } from "../hooks/useMealPlan";
 
 const MealJournal = ({ user, onLogout, onBackToMealPlan }) => {
   const [weeklyPlan, setWeeklyPlan] = useState(null);
@@ -18,6 +20,8 @@ const MealJournal = ({ user, onLogout, onBackToMealPlan }) => {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedMealType, setSelectedMealType] = useState(null);
+
+  const {consumedNutrition, nutritionStats,isLoadingMeals,mealsError,currentMeals} = useMealPlan(user, onLogout);
 
   const fetchFullMealPlan = async (forceRegenerate = false) => {
     if (!user?.preferences) {
@@ -150,6 +154,7 @@ const MealJournal = ({ user, onLogout, onBackToMealPlan }) => {
         <Button onClick={onBackToMealPlan} variant="ghost" className="absolute top-4 left-4 flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </Button>
+
         <h2 className="text-xl font-semibold text-red-600 mb-2">Failed to Load Plan</h2>
         <p className="bg-red-100 border border-red-200 p-4 rounded-md mb-4">{error}</p>
         <div className="flex gap-2">
@@ -203,6 +208,19 @@ const MealJournal = ({ user, onLogout, onBackToMealPlan }) => {
             </div>
           </div>
         </header>
+
+        {!isLoadingMeals && !mealsError && currentMeals.length > 0 && (
+            <>
+              <NutritionSnapshot 
+                consumedNutrition={consumedNutrition}
+                nutritionStats={nutritionStats}
+              />
+             
+            </>
+          )}  
+        
+       
+
 
         {weekInfo && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">

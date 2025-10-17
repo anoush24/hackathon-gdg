@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, MapPin } from "lucide-react";
+import { Sparkles, MapPin, Calendar, IndianRupee } from "lucide-react";
 import ProfileDropdown from "../dashboard/ProfileDropdown";
 
 const DashboardHeader = ({ 
@@ -9,47 +9,106 @@ const DashboardHeader = ({
   onLogout 
 }) => {
   return (
-    <div className="bg-gradient-primary text-primary-foreground">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6" />
-              <span className="text-sm font-medium opacity-90">
-                Nourish AI
-              </span>
+    <header className="bg-gradient-primary text-primary-foreground shadow-lg border-b border-primary-foreground/10 sticky top-0 z-50">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Left Section - Brand */}
+          <div className="flex items-center gap-6">
+            {/* Brand Logo */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary-foreground/15 rounded-xl backdrop-blur-sm">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-bold tracking-tight">
+                  Nourish
+                </span>
+                <span className="text-xs font-semibold px-2 py-1 bg-primary-foreground/20 rounded-full uppercase tracking-wider">
+                  AI
+                </span>
+              </div>
             </div>
-            <h1 className="heading-hero text-primary-foreground">
-              Your Daily Dish
-            </h1>
-            <p className="text-lg opacity-90 mt-2">
-              Personalized meals crafted just for you
-            </p>
+
+            {/* Navigation Title - Desktop Only */}
+            <div className="hidden xl:flex items-center gap-3 pl-6 border-l border-primary-foreground/20">
+              <div>
+                <h1 className="text-lg font-semibold leading-tight">
+                  Your Daily Dish
+                </h1>
+                <p className="text-xs opacity-75 font-medium">
+                  Personalized meals crafted just for you
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            {/* Date Display */}
-            <div className="text-right">
-              <div className="text-sm opacity-90">Today</div>
-              <div className="text-2xl font-bold">
-                {new Date().toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
+          {/* Right Section - Info & Profile */}
+          <div className="flex items-center gap-3">
+            {/* Quick Info Cards - Desktop */}
+            <div className="hidden lg:flex items-center gap-2">
+              {/* Date */}
+              <div className="bg-primary-foreground/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-primary-foreground/15">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 opacity-75" />
+                  <div className="text-right">
+                    <div className="text-xs opacity-75 font-medium">Today</div>
+                    <div className="text-sm font-bold">
+                      {new Date().toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Budget */}
+              <div className="bg-primary-foreground/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-primary-foreground/15">
+                <div className="flex items-center gap-2">
+                  <IndianRupee className="w-4 h-4 opacity-75" />
+                  <div>
+                    <div className="text-xs opacity-75 font-medium">Budget</div>
+                    <div className="text-sm font-bold">
+                      ₹{user?.budget || 75}/week
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="bg-primary-foreground/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-primary-foreground/15">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 opacity-75" />
+                  <div>
+                    <div className="text-xs opacity-75 font-medium">Location</div>
+                    <div className="text-sm font-bold">
+                      {user?.location?.city || "Mumbai"}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Quick Info */}
-            <div className="hidden md:flex flex-col items-center gap-1 text-sm opacity-90 border-l border-primary-foreground/20 pl-4">
-              <div className="flex items-center gap-1">
-                <span>₹{user?.budget || 75}/week</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                <span>{user?.location?.city || "City"}</span>
+            {/* Mobile Quick Info */}
+            <div className="lg:hidden bg-primary-foreground/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-primary-foreground/15">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 opacity-75" />
+                <div className="text-center">
+                  <div className="text-xs opacity-75 font-medium">Today</div>
+                  <div className="text-sm font-bold">
+                    {new Date().toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 
+            {/* Separator */}
+            <div className="w-px h-8 bg-primary-foreground/20"></div>
+
+            {/* Profile Dropdown */}
             <ProfileDropdown 
               user={user}
               onNavigateToMealJournal={onNavigateToMealJournal}
@@ -58,8 +117,20 @@ const DashboardHeader = ({
             />
           </div>
         </div>
+
+        {/* Mobile/Tablet Title Bar */}
+        <div className="xl:hidden pb-3 border-t border-primary-foreground/15">
+          <div className="pt-3">
+            <h1 className="text-lg font-semibold mb-1">
+              Your Daily Dish
+            </h1>
+            <p className="text-sm opacity-75 font-medium">
+              Personalized meals crafted just for you
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
   );
 };
 

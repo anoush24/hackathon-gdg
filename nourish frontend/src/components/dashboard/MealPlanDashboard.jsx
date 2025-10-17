@@ -185,13 +185,6 @@ const MealPlanDashboard = ({
 
           {!isLoadingMeals && !mealsError && currentMeals.length > 0 && (
             <>
-              <NutritionSnapshot 
-                consumedNutrition={consumedNutrition}
-                nutritionStats={nutritionStats}
-              />
-
-              <InsightsCard/>
-
               <TodaysMealPlan 
                 currentMeals={currentMeals}
                 onMealClick={openMealDetail}
@@ -205,6 +198,7 @@ const MealPlanDashboard = ({
                 isLoadingRestaurants={isLoadingRestaurants}
                 mealPlanContext={mealPlanContext}
               />
+              <InsightsCard/>
             </>
           )}
         </div>
