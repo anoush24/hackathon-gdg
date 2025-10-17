@@ -9,18 +9,18 @@ const DashboardHeader = ({
   onLogout 
 }) => {
   return (
-    <header className="bg-gradient-primary text-primary-foreground shadow-lg border-b border-primary-foreground/10 sticky top-0 z-50">
-      <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
+    <header className="text-black shadow-lg border-b border-primary-foreground/10 sticky top-0 z-50 bg-white ">
+      <div className="container mx-auto px-6 ">
+        <div className="flex space-between items-center justify-between h-16">
           {/* Left Section - Brand */}
           <div className="flex items-center gap-6">
             {/* Brand Logo */}
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary-foreground/15 rounded-xl backdrop-blur-sm">
-                <Sparkles className="w-5 h-5" />
+                <Sparkles className="w-5 h-5 text-green-800" />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold tracking-tight">
+                <span className="text-xl text-green-800 font-bold tracking-tight">
                   Nourish
                 </span>
                 <span className="text-xs font-semibold px-2 py-1 bg-primary-foreground/20 rounded-full uppercase tracking-wider">
@@ -29,23 +29,9 @@ const DashboardHeader = ({
               </div>
             </div>
 
-            {/* Navigation Title - Desktop Only */}
-            <div className="hidden xl:flex items-center gap-3 pl-6 border-l border-primary-foreground/20">
-              <div>
-                <h1 className="text-lg font-semibold leading-tight">
-                  Your Daily Dish
-                </h1>
-                <p className="text-xs opacity-75 font-medium">
-                  Personalized meals crafted just for you
-                </p>
-              </div>
-            </div>
           </div>
 
-          {/* Right Section - Info & Profile */}
-          <div className="flex items-center gap-3">
-            {/* Quick Info Cards - Desktop */}
-            <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
               {/* Date */}
               <div className="bg-primary-foreground/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-primary-foreground/15">
                 <div className="flex items-center gap-2">
@@ -88,6 +74,11 @@ const DashboardHeader = ({
                 </div>
               </div>
             </div>
+            
+          {/* Right Section - Info & Profile */}
+          <div className="flex items-center gap-3">
+            {/* Quick Info Cards - Desktop */}
+            
 
             {/* Mobile Quick Info */}
             <div className="lg:hidden bg-primary-foreground/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-primary-foreground/15">

@@ -18,7 +18,7 @@ const MealCard = ({
 }) => {
   return (
     <Card
-      className="food-card cursor-pointer overflow-hidden border-0 shadow-card bg-card transition-all duration-300 hover:shadow-lg hover:scale-105"
+      className="food-card cursor-pointer overflow-hidden border-0 shadow-card bg-card transition-all duration-300 hover:shadow-lg hover:scale-105 bg-orange-50"
     >
       <div className="relative">
         <img

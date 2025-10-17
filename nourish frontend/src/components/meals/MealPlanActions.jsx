@@ -25,20 +25,20 @@ const MealPlanActions = ({
         variant="default"
         size="lg"
         disabled={isLoadingGrocery}
-        className="h-16 px-8 bg-gradient-primary text-primary-foreground shadow-warm hover:shadow-glow transition-all duration-300 transform hover:scale-105 border-0 min-w-[200px] font-medium"
+        className="h-16 px-8 bg-white text text-primary-foreground shadow-warm hover:shadow-glow transition-all duration-300 transform hover:scale-105 border-0 min-w-[200px] font-medium"
       >
         {isLoadingGrocery ? (
           <>
             <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-            <div className="text-left">
+            <div className="text-left text-green-800">
               <div className="text-lg font-bold">Generating...</div>
               <div className="text-sm opacity-90 font-medium">Smart Grocery List</div>
             </div>
           </>
         ) : (
           <>
-            <ShoppingCart className="w-6 h-6 mr-3" />
-            <div className="text-left">
+            <ShoppingCart className="w-6 h-6 mr-3 text-green-800" />
+            <div className="text-left text-green-800">
               <div className="text-lg font-bold">Smart Grocery List</div>
               <div className="text-sm opacity-90 font-medium">AI-powered shopping</div>
             </div>
@@ -47,12 +47,12 @@ const MealPlanActions = ({
       </Button>
 
       {/* Dine Out - Secondary Feature */}
-      <Button
+      {/* <Button
         onClick={onFindRestaurants}
         variant="outline"
         size="lg"
         disabled={isLoadingRestaurants || !mealPlanContext}
-        className="h-16 px-8 bg-gradient-primary text-primary-foreground shadow-warm hover:shadow-glow transition-all duration-300 transform hover:scale-105 border-0 min-w-[180px] font-medium"
+        className="h-16 px-8 text-primary-foreground shadow-warm hover:shadow-glow transition-all duration-300 transform hover:scale-105 border-0 min-w-[180px] font-medium bg-white"
       >
         {isLoadingRestaurants ? (
           <>
@@ -64,28 +64,28 @@ const MealPlanActions = ({
           </>
         ) : (
           <>
-            <ChefHat className="w-6 h-6 mr-3" />
-            <div className="text-left">
+            <ChefHat className="w-6 h-6 mr-3 text-green-800" />
+            <div className="text-left text-green-800">
               <div className="text-lg font-bold">Dine Out</div>
               <div className="text-sm opacity-90 font-medium">Find restaurants</div>
             </div>
           </>
         )}
-      </Button>
+      </Button> */}
 
       {/* View Weekly Plan - Secondary Feature */}
-      <Button
+      {/* <Button
         onClick={onNavigateToMealJournal}
         variant="outline"
         size="lg"
-        className="h-16 px-8 bg-gradient-primary text-primary-foreground shadow-warm hover:shadow-glow transition-all duration-300 transform hover:scale-105 border-0 min-w-[180px] font-medium"
+        className="h-16 px-8 bg-white text-primary-foreground shadow-warm hover:shadow-glow transition-all duration-300 transform hover:scale-105 border-0 min-w-[180px] font-medium"
       >
-        <Calendar className="w-6 h-6 mr-3" />
-        <div className="text-left">
+        <Calendar className="w-6 h-6 mr-3 text-green-800" />
+        <div className="text-left text-green-800">
           <div className="text-lg font-bold">Weekly Plan</div>
           <div className="text-sm opacity-90 font-medium">View full schedule</div>
         </div>
-      </Button>
+      </Button> */}
 
       {/* Customize - Tertiary Feature */}
       {/* <Button

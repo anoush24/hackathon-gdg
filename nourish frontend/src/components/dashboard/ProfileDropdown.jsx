@@ -50,10 +50,10 @@ const ProfileDropdown = ({
         variant="ghost"
         className="flex items-center gap-2 hover:bg-primary-foreground/10 text-primary-foreground"
       >
-        <div className="w-10 h-10 bg-primary-foreground/20 rounded-full flex items-center justify-center text-primary-foreground font-medium border-2 border-primary-foreground/30">
+        <div className="w-10 h-10 bg-green-800 rounded-full flex items-center justify-center text-primary-foreground font-medium border-2 border-primary-foreground/30">
           {user?.name?.charAt(0).toUpperCase() || "U"}
         </div>
-        <div className="hidden sm:block text-left">
+        <div className="hidden sm:block text-left text-green-800">
           <p className="text-sm font-medium">
             {user?.name || "User"}
           </p>

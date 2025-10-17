@@ -13,12 +13,21 @@ const TodaysMealPlan = ({
   onCustomize,
   isLoadingGrocery,
   isLoadingRestaurants,
-  mealPlanContext
+  mealPlanContext,
+  weekInfo
 }) => {
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="heading-section">Today's Meal Plan</h2>
+        <div className="flex-col items-center justify-between mb-6">
+          <h2 className="text-3xl font-semibold">Today's Meal Plan</h2>
+          {weekInfo && (
+            <p className="text-sm text-gray-500">
+              Week {weekInfo.weekOfMonth} of {new Date(weekInfo.startDate).toLocaleDateString('en-US', { month: 'long' })} • {weekInfo.optionName}
+            </p>
+
+          )}
+        </div>
         <MealPlanActions
           onGetGroceryList={onGetGroceryList}
           onFindRestaurants={onFindRestaurants}

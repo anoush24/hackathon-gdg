@@ -162,7 +162,7 @@ const MealPlanDashboard = ({
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-subtle">
+      <div className="min-h-screen bg-green-100">
         <DashboardHeader 
           user={user}
           onNavigateToMealJournal={onNavigateToMealJournal}
@@ -197,6 +197,7 @@ const MealPlanDashboard = ({
                 isLoadingGrocery={isLoadingGrocery}
                 isLoadingRestaurants={isLoadingRestaurants}
                 mealPlanContext={mealPlanContext}
+                weekInfo={weekInfo}
               />
               <InsightsCard/>
             </>
