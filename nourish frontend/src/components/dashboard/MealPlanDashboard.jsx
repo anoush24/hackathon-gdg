@@ -1,9 +1,10 @@
-import React, { useState, forwardRef, useImperativeHandle} from "react";
+import React, { useState, forwardRef, useImperativeHandle, useRef } from "react";
 
 // Layout Components
 import DashboardHeader from "../layout/DashboardHeader";
 import WelcomeSection from "../layout/WelcomeSection";
 import LoadingState from "../layout/LoadingState";
+import DineOutSection from "../layout/DineOutSection";
 
 // Nutrition Components
 import NutritionSnapshot from "../nutrition/NutritionSnapshot";
@@ -45,6 +46,10 @@ const MealPlanDashboard = ({
   const [groceryIngredients, setGroceryIngredients] = useState([]);
   const [showCustomization, setShowCustomization] = useState(false);
 
+  // Refs for scrolling
+  const mealsRef = useRef(null);
+  const dineOutRef = useRef(null);
+
   // Custom hooks
   const {
     currentMeals,
@@ -62,7 +67,7 @@ const MealPlanDashboard = ({
   useImperativeHandle(ref, () => ({
     refetchMealsWithNewPreferences
   }));
-  
+
   const {
     selectedMeal,
     selectedDay,
@@ -93,6 +98,15 @@ const MealPlanDashboard = ({
     fetchGroceryList
   } = useGrocery();
 
+  // Scroll Handlers
+  const scrollToMeals = () => {
+    mealsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const scrollToDineOut = () => {
+    dineOutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   // Handlers
   const handleCustomize = () => {
     console.log('🎨 Opening meal customization');
@@ -113,7 +127,7 @@ const MealPlanDashboard = ({
     }
 
     console.log('🍴 Finding restaurants with context:', mealPlanContext);
-    
+
     try {
       const result = await findRestaurants(mealPlanContext, user);
       if (result.success) {
@@ -162,8 +176,9 @@ const MealPlanDashboard = ({
 
   return (
     <>
-      <div className="min-h-screen bg-green-100">
-        <DashboardHeader 
+      <div className="min-h-screen bg-green-50 relative overflow-hidden">
+  
+        <DashboardHeader
           user={user}
           onNavigateToMealJournal={onNavigateToMealJournal}
           onNavigateToSettings={onNavigateToSettings}
@@ -171,12 +186,18 @@ const MealPlanDashboard = ({
         />
 
         <div className="container mx-auto px-4 py-8">
-          <WelcomeSection user={user} weekInfo={weekInfo} />
+          {/* Welcome Section with Buttons */}
+          <WelcomeSection
+            user={user}
+            weekInfo={weekInfo}
+            onScrollToMeals={scrollToMeals}
+            scrollToDineOut={scrollToDineOut}
+          />
 
           {isLoadingMeals && <LoadingState message="Loading today's meals..." />}
 
           {mealsError && !isLoadingMeals && (
-            <ErrorState 
+            <ErrorState
               error={mealsError}
               onRetry={() => window.location.reload()}
               onGeneratePlan={onNavigateToMealJournal}
@@ -185,21 +206,34 @@ const MealPlanDashboard = ({
 
           {!isLoadingMeals && !mealsError && currentMeals.length > 0 && (
             <>
-              <TodaysMealPlan 
-                currentMeals={currentMeals}
-                onMealClick={openMealDetail}
-                onRecipeClick={openRecipeCard} 
-                onToggleMealComplete={toggleMealComplete}
-                onGetGroceryList={handleGetGroceryList}
-                onFindRestaurants={handleFindRestaurants}
-                onNavigateToMealJournal={onNavigateToMealJournal}
-                onCustomize={handleCustomize}
-                isLoadingGrocery={isLoadingGrocery}
-                isLoadingRestaurants={isLoadingRestaurants}
-                mealPlanContext={mealPlanContext}
-                weekInfo={weekInfo}
-              />
-              <InsightsCard/>
+              {/* Today's Meal Plan Section */}
+              <div ref={mealsRef} className="scroll-mt-24">
+                <TodaysMealPlan
+                  currentMeals={currentMeals}
+                  onMealClick={openMealDetail}
+                  onRecipeClick={openRecipeCard}
+                  onToggleMealComplete={toggleMealComplete}
+                  onGetGroceryList={handleGetGroceryList}
+                  onFindRestaurants={handleFindRestaurants}
+                  onNavigateToMealJournal={onNavigateToMealJournal}
+                  onCustomize={handleCustomize}
+                  isLoadingGrocery={isLoadingGrocery}
+                  isLoadingRestaurants={isLoadingRestaurants}
+                  mealPlanContext={mealPlanContext}
+                  weekInfo={weekInfo}
+                />
+              </div>
+
+              {/* Dine Out Section */}
+              <div ref={dineOutRef}>
+                <DineOutSection
+                  id="dine-out-section"
+                  onFindRestaurants={handleFindRestaurants}
+                  isLoading={isLoadingRestaurants}
+                />
+              </div>
+
+              <InsightsCard />
             </>
           )}
         </div>
@@ -240,7 +274,7 @@ const MealPlanDashboard = ({
       )}
 
       {showGroceryModal && groceryData && (
-        <GroceryListModal 
+        <GroceryListModal
           groceryData={groceryData}
           onClose={() => setShowGroceryModal(false)}
         />
