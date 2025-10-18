@@ -68,23 +68,28 @@ const MealCard = ({
             {title}
           </h3>
         
-          <div className="flex items-center justify-center text-sm text-warm">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-               | <Clock className="w-4 h-4" />
-                <span>{cookTime} |</span>
-              </div>
-              <div className="flex items-center gap-1">
-                 <Users className="w-4 h-4" />
-                <span>{servings}</span>
-              </div>
+          <div className="flex items-center justify-center text-sm text-gray-600 mb-6">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-green-600" />
+                <span className="font-medium">{cookTime}</span>
+              </div>
               
-                <span 
-                className="flex items-center gap-1">
-               | <Zap className="w-4 h-4" />
-              <span>{calories} cal  |</span>
-         </span> </div>
-            </div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-green-600" />
+                <span className="font-medium">{servings}</span>
+              </div>
+              
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-green-600" />
+                <span className="font-medium">{calories} cal</span>
+              </div>
+            </div>
+          </div>
 
             
 
