@@ -4,7 +4,7 @@ import AuthFlow from './components/auth/AuthFlow';
 import MealPlanDashboard from './components/dashboard/MealPlanDashboard';
 import Dashboard from './components/dashboard/Dashboard';
 import MealJournal from './components/MealJournal';
-import MealCustomizationPage from './components/MealCustomizationPage'; 
+import MealCustomizationPage from './components/MealCustomizationPage';
 import { authService } from './authBridge';
 import axios from 'axios';
 
@@ -83,18 +83,17 @@ function App() {
   };
 
   const handlePreferencesUpdated = async (newPreferences, setUser) => {
-    console.log('🔄 Preferences updated, refreshing user data...');
-    
+    console.log('🔄 Preferences updated, refreshing meal plan...');
+
     // Update user object with new preferences
     setUser(prevUser => ({
       ...prevUser,
       preferences: newPreferences
     }));
 
-    // Wait a moment for backend to complete operations
+    // Only trigger meal plan refresh for preference changes
     setTimeout(() => {
-      console.log('🔄 Triggering meal plan refresh...');
-      // Trigger meal plan refresh in dashboard
+      console.log('🔄 Triggering meal plan refresh due to preference changes...');
       if (dashboardRef.current?.refetchMealsWithNewPreferences) {
         dashboardRef.current.refetchMealsWithNewPreferences();
       }
@@ -105,26 +104,26 @@ function App() {
     <div className="App">
       <Routes>
         {/* Public Routes */}
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             authService.isAuthenticated() ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <AuthFlow onAuthSuccess={handleAuthSuccess} />
             )
-          } 
+          }
         />
 
         {/* Protected Routes */}
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               {(user, setUser) => (
-                <MealPlanDashboard 
+                <MealPlanDashboard
                   ref={dashboardRef}
-                  user={user} 
+                  user={user}
                   onLogout={handleLogout}
                   onNavigateToSettings={() => navigate('/settings')}
                   onNavigateToMealJournal={() => navigate('/journal')}
@@ -132,53 +131,57 @@ function App() {
                 />
               )}
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/settings" 
+        <Route
+          path="/settings"
           element={
             <ProtectedRoute>
               {(user, setUser) => (
-                <Dashboard 
-                  user={user} 
+                <Dashboard
+                  user={user}
                   onLogout={handleLogout}
                   onBackToMealPlan={() => navigate('/dashboard')}
-                  onPreferencesUpdated={(newPrefs) => handlePreferencesUpdated(newPrefs, setUser)}
+                  onPreferencesUpdated={(newPrefs) => {
+                    // Only trigger refresh for actual preference changes
+                    console.log('🎯 Only preferences changed, triggering targeted update');
+                    handlePreferencesUpdated(newPrefs, setUser);
+                  }}
                 />
               )}
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/journal" 
+        <Route
+          path="/journal"
           element={
             <ProtectedRoute>
               {(user, setUser) => (
-                <MealJournal 
-                  user={user} 
+                <MealJournal
+                  user={user}
                   onLogout={handleLogout}
                   onBackToMealPlan={() => navigate('/dashboard')}
                 />
               )}
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/customize" 
+        <Route
+          path="/customize"
           element={
             <ProtectedRoute>
               {(user, setUser) => (
-                <MealCustomizationPage 
+                <MealCustomizationPage
                   user={user}
                   onBack={() => navigate('/dashboard')}
                   onSave={() => navigate('/dashboard')}
                 />
               )}
             </ProtectedRoute>
-          } 
+          }
         />
 
         {/* Redirect Routes */}

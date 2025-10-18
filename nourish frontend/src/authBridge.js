@@ -182,5 +182,20 @@ export const authService = {
   clearAuth: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  },
+
+  updateStoredUser: (userData) => {
+    try {
+      const currentUser = authService.getStoredUser();
+      if (currentUser) {
+        const updatedUser = { ...currentUser, ...userData };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return updatedUser;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error updating stored user:', error);
+      return null;
+    }
   }
 };
