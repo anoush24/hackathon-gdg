@@ -1,6 +1,7 @@
 import React from 'react';
 import MealCard from './MealCard';
 import MealPlanActions from './MealPlanActions';
+import Mealplanbg from '../../assets/mealplanbg.png';
 
 const TodaysMealPlan = ({
   currentMeals,
@@ -17,10 +18,22 @@ const TodaysMealPlan = ({
   weekInfo
 }) => {
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex-col items-center justify-between mb-6">
-          <h2 className="text-3xl font-semibold">Today's Meal Plan</h2>
+    <div className="mb-8 min-h-[650px]">
+      <div className="flex items-center justify-between mb-20 relative"
+       style={{
+                  backgroundImage: `url(${Mealplanbg})`,
+                  backgroundRepeat: 'repeat', 
+                  opacity: 0.8, 
+                  }}>
+       <div className="flex-1 flex flex-col items-center justify-center text-center text-green-700">
+        {/* flex flex-col items-center justify-center text-center text-green-700 */}
+          <h2 className="text-3xl font-bold 
+        bg-green-700           
+        text-white            
+        px-4 py-2             
+        rounded-full          
+        mb-2                  
+        shadow-md">Today's Meal Plan</h2>
           {weekInfo && (
             <p className="text-sm text-gray-500">
               Week {weekInfo.weekOfMonth} of {new Date(weekInfo.startDate).toLocaleDateString('en-US', { month: 'long' })} • {weekInfo.optionName}
@@ -28,6 +41,7 @@ const TodaysMealPlan = ({
 
           )}
         </div>
+        <div className="absolute right-0 top-10 z-20">
         <MealPlanActions
           onGetGroceryList={onGetGroceryList}
           onFindRestaurants={onFindRestaurants}
@@ -37,9 +51,10 @@ const TodaysMealPlan = ({
           isLoadingRestaurants={isLoadingRestaurants}
           mealPlanContext={mealPlanContext}
         />
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-6 min-h-[550px] ">
         {currentMeals.map((meal) => (
           <MealCard
             key={meal.id}

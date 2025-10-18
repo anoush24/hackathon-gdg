@@ -25,7 +25,7 @@ const MealPlanActions = ({
         variant="default"
         size="lg"
         disabled={isLoadingGrocery}
-        className="h-16 px-8 bg-white text text-primary-foreground shadow-warm hover:shadow-glow transition-all duration-300 transform hover:scale-105 border-0 min-w-[200px] font-medium"
+        className="flex items-center gap-3 px-4 py-7 bg-white border-2 border-green-500 text-green-700 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 hover:bg-green-50 transition-all duration-300 font-semibold group"
       >
         {isLoadingGrocery ? (
           <>
@@ -37,7 +37,7 @@ const MealPlanActions = ({
           </>
         ) : (
           <>
-            <ShoppingCart className="w-6 h-6 mr-3 text-green-800" />
+            <ShoppingCart className="w-6 h-6 mr-3 text-green-800 group-hover:rotate-12 transition-transform" />
             <div className="text-left text-green-800">
               <div className="text-lg font-bold">Smart Grocery List</div>
               <div className="text-sm opacity-90 font-medium">AI-powered shopping</div>

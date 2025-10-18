@@ -1,6 +1,7 @@
 import React from "react";
 import { Sparkles, MapPin, Calendar, IndianRupee } from "lucide-react";
 import ProfileDropdown from "../dashboard/ProfileDropdown";
+import NourishAILogo from '../../assets/LogoNnobg.png';
 
 const DashboardHeader = ({ 
   user, 
@@ -16,9 +17,11 @@ const DashboardHeader = ({
           <div className="flex items-center gap-6">
             {/* Brand Logo */}
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary-foreground/15 rounded-xl backdrop-blur-sm">
-                <Sparkles className="w-5 h-5 text-green-800" />
-              </div>
+              <img
+                    src={NourishAILogo}
+                    alt="Nourish AI Logo"
+                    className="w-8 h-8 object-contain" /* ⭐ Adjust w-8 h-8 for size ⭐ */
+                />
               <div className="flex items-baseline gap-2">
                 <span className="text-xl text-green-800 font-bold tracking-tight">
                   Nourish
