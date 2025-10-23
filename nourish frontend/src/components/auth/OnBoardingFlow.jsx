@@ -11,7 +11,7 @@ import {
   ArrowRight, 
   ArrowLeft, 
   MapPin, 
-  DollarSign, 
+  IndianRupee, 
   Utensils, 
   Heart, 
   AlertTriangle, 
@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { authService } from "../../authBridge";
 import freshIngredients from "../../assets/fresh-ingredients.jpg";
+import HeroBackground from "../../assets/herobgveg5.png";
 
 const cuisineOptions = [
   "Mediterranean",
@@ -63,20 +64,16 @@ const allergyOptions = [
 ];
 
 const initialState = {
-  // Profile
   name: "",
   email: "",
   password: "",
-  // Numeric budget for backend; UI slider can adapt
   budget: 75,
-  // Structured location aligned with backend schema
   location: { city: "", state: "", country: "India" },
-  // Preferences aligned with backend schema
   preferences: {
     cuisines: [],
     goals: [],
     allergies: [],
-    dietaryRestrictions: [], // separate from allergies
+    dietaryRestrictions: [],
   },
 };
 
@@ -89,11 +86,9 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
   const totalSteps = 6;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
-  // Derive a slider-friendly array while keeping source of truth as number
   const budgetArray = useMemo(() => [state.budget], [state.budget]);
 
   const setField = (path, value) => {
-    // minimal immutable update helper for shallow paths
     setError("");
     setState((prev) => {
       const next = { ...prev };
@@ -128,7 +123,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
     if (allergy === "None") {
       updated = ["None"];
     } else {
-      // toggle selected allergy and remove "None" if present
       updated = toggleArrayItem(
         updated.filter((a) => a !== "None"),
         allergy
@@ -141,7 +135,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const validateCurrentStep = () => {
-    // return error string or empty
     switch (currentStep) {
       case 0:
         if (state.preferences.cuisines.length === 0)
@@ -156,7 +149,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
           return "Please select at least one allergy option.";
         break;
       case 3:
-        // budget is numeric; enforce bounds if desired
         if (state.budget < 0) return "Budget cannot be negative.";
         break;
       case 4:
@@ -184,7 +176,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
   };
 
   const buildPayload = () => {
-    // If dietaryRestrictions not explicitly chosen, infer non-"None" allergies
     const dietary =
       state.preferences.dietaryRestrictions.length > 0
         ? state.preferences.dietaryRestrictions
@@ -206,7 +197,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
         allergies: state.preferences.allergies,
         dietaryRestrictions: dietary,
       },
-      // Optional: explicit flags (backend has defaults)
       isActive: true,
       lastLogin: new Date(),
     };
@@ -219,7 +209,6 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
     try {
       const userData = buildPayload();
 
-      // Mask password in console
       console.log("📝 Final user data being sent:", {
         ...userData,
         password: "[HIDDEN]",
@@ -275,30 +264,28 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
               <img
                 src={freshIngredients}
                 alt="Fresh ingredients"
-                className="w-full h-64 object-cover rounded-lg shadow-card"
+                className="w-full h-64 object-cover rounded-lg shadow-card mx-auto"
               />
             </div>
-            <ChefHat className="w-16 h-16 text-primary mx-auto" />
-            <h2 className="heading-section">What's Your Flavor?</h2>
-            <p className="text-warm">
+            <ChefHat className="w-16 h-16 text-green-700 mx-auto" />
+            <h2 className="text-5xl font-nunito font-extrabold text-green-700 mb-6 tracking-tight">What's Your Flavor?</h2>
+            <p className="text-lg font-nunito text-gray-900 opacity-90">
               Select the cuisines that make your taste buds dance
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {cuisineOptions.map((cuisine) => (
                 <Badge
                   key={cuisine}
-                  variant={
+                  className={`cursor-pointer p-4 text-lg font-semibold transition-all duration-300 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 ${
                     state.preferences.cuisines.includes(cuisine)
-                      ? "default"
-                      : "outline"
-                  }
-                  className={`cursor-pointer p-3 text-sm transition-smooth ${
-                    state.preferences.cuisines.includes(cuisine)
-                      ? "bg-gradient-primary text-primary-foreground border-0"
-                      : "hover:border-primary"
+                      ? "bg-green-700 text-white border-2 border-green-700"
+                      : "bg-white border-2 border-green-500 text-green-700 hover:bg-green-50"
                   }`}
                   onClick={() => handleCuisineToggle(cuisine)}
                 >
+                  {state.preferences.cuisines.includes(cuisine) && (
+                    <Check className="w-5 h-5 inline-block mr-2" />
+                  )}
                   {cuisine}
                 </Badge>
               ))}
@@ -308,27 +295,25 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
       case 1:
         return (
           <div className="text-center space-y-6">
-            <Target className="w-16 h-16 text-secondary mx-auto" />
-            <h2 className="heading-section">Goal-Getter</h2>
-            <p className="text-warm">
+            <Target className="w-16 h-16 text-green-700 mx-auto" />
+            <h2 className="text-5xl font-nunito font-extrabold text-green-700 mb-6 tracking-tight">Goal-Getter</h2>
+            <p className="text-lg font-nunito text-gray-900 opacity-90">
               What brings you to your culinary journey?
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {goalOptions.map((goal) => (
                 <Badge
                   key={goal}
-                  variant={
+                  className={`cursor-pointer p-4 text-lg font-semibold transition-all duration-300 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 ${
                     state.preferences.goals.includes(goal)
-                      ? "default"
-                      : "outline"
-                  }
-                  className={`cursor-pointer p-3 text-sm transition-smooth ${
-                    state.preferences.goals.includes(goal)
-                      ? "bg-gradient-warm text-accent-foreground border-0"
-                      : "hover:border-secondary"
+                      ? "bg-green-700 text-white border-2 border-green-700"
+                      : "bg-white border-2 border-green-500 text-green-700 hover:bg-green-50"
                   }`}
                   onClick={() => handleGoalToggle(goal)}
                 >
+                  {state.preferences.goals.includes(goal) && (
+                    <Check className="w-5 h-5 inline-block mr-2" />
+                  )}
                   {goal}
                 </Badge>
               ))}
@@ -338,40 +323,50 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
       case 2:
         return (
           <div className="text-center space-y-6">
-            <Shield className="w-16 h-16 text-accent mx-auto" />
-            <h2 className="heading-section">The Allergy Avoider</h2>
-            <p className="text-warm">Help us keep you safe and satisfied</p>
-            <div className="grid grid-cols-2 gap-3">
+            <Shield className="w-16 h-16 text-green-700 mx-auto" />
+            <h2 className="text-5xl font-nunito font-extrabold text-green-700 mb-6 tracking-tight">The Allergy Avoider</h2>
+            <p className="text-lg font-nunito text-gray-900 opacity-90">Help us keep you safe and satisfied</p>
+            <div className="grid grid-cols-2 gap-4">
               {allergyOptions.map((allergy) => (
                 <div
                   key={allergy}
-                  className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-accent transition-smooth cursor-pointer"
+                  className={`flex items-center space-x-3 p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:scale-105 ${
+                    state.preferences.allergies.includes(allergy)
+                      ? "bg-green-700 text-white border-green-700"
+                      : "bg-white border-green-500 hover:bg-green-50"
+                  }`}
                   onClick={() => handleAllergyToggle(allergy)}
                 >
                   <Checkbox
                     id={allergy}
                     checked={state.preferences.allergies.includes(allergy)}
-                    onChange={() => handleAllergyToggle(allergy)}
+                    className="pointer-events-none"
                   />
                   <label
                     htmlFor={allergy}
-                    className="text-sm font-medium leading-none cursor-pointer flex-1 text-left"
+                    className={`text-lg font-semibold font-nunito leading-none cursor-pointer flex-1 text-left ${
+                      state.preferences.allergies.includes(allergy)
+                        ? "text-white"
+                        : "text-green-700"
+                    }`}
                   >
                     {allergy}
                   </label>
+                  {state.preferences.allergies.includes(allergy) && (
+                    <Check className="w-5 h-5" />
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* Optional dietary restrictions explicit picker */}
             <div className="text-left space-y-3 mt-4">
-              <p className="text-sm text-warm">
+              <p className="text-sm font-nunito text-gray-900 opacity-80">
                 Any other dietary restrictions? (optional)
               </p>
               <input
                 type="text"
                 placeholder="e.g., vegan, halal, low-sodium"
-                className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                className="w-full p-3 border-2 border-green-500 rounded-xl focus:border-green-700 focus:ring-2 focus:ring-green-500/20 outline-none transition-all duration-300 bg-white text-gray-900 font-nunito hover:bg-green-50"
                 value={state.preferences.dietaryRestrictions.join(", ")}
                 onChange={(e) => {
                   const vals = e.target.value
@@ -387,11 +382,11 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
       case 3:
         return (
           <div className="text-center space-y-6">
-            <DollarSign className="w-16 h-16 text-primary mx-auto" />
-            <h2 className="heading-section">Budget Bites</h2>
-            <p className="text-warm">What's your weekly grocery budget?</p>
+            <IndianRupee className="w-16 h-16 text-green-700 mx-auto" />
+            <h2 className="text-5xl font-nunito font-extrabold text-green-700 mb-6 tracking-tight">Budget Bites</h2>
+            <p className="text-lg font-nunito text-gray-900 opacity-90">What's your weekly grocery budget?</p>
             <div className="space-y-6">
-              <div className="text-4xl font-bold text-primary">
+              <div className="text-5xl font-nunito font-extrabold text-green-700 tracking-tight">
                 ₹{state.budget}
               </div>
               <Slider
@@ -402,7 +397,7 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 step={5}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-warm">
+              <div className="flex justify-between text-sm font-nunito text-gray-900 opacity-80">
                 <span>₹1000</span>
                 <span>₹5000+</span>
               </div>
@@ -412,19 +407,19 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
       case 4:
         return (
           <div className="text-center space-y-6">
-            <MapPin className="w-16 h-16 text-secondary mx-auto" />
-            <h2 className="heading-section">Home Sweet Feast</h2>
-            <p className="text-warm">
+            <MapPin className="w-16 h-16 text-green-700 mx-auto" />
+            <h2 className="text-5xl font-nunito font-extrabold text-green-700 mb-6 tracking-tight">Home Sweet Feast</h2>
+            <p className="text-lg font-nunito text-gray-900 opacity-90">
               Where should we deliver your culinary inspiration?
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <input
                 type="text"
                 placeholder="City"
                 value={state.location.city}
                 onChange={(e) => setField("location.city", e.target.value)}
-                className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                className="w-full p-3 border-2 border-green-500 rounded-xl focus:border-green-700 focus:ring-2 focus:ring-green-500/20 outline-none transition-all duration-300 bg-white text-gray-900 font-nunito hover:bg-green-50"
                 disabled={isSubmitting}
               />
               <input
@@ -432,7 +427,7 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 placeholder="State"
                 value={state.location.state}
                 onChange={(e) => setField("location.state", e.target.value)}
-                className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                className="w-full p-3 border-2 border-green-500 rounded-xl focus:border-green-700 focus:ring-2 focus:ring-green-500/20 outline-none transition-all duration-300 bg-white text-gray-900 font-nunito hover:bg-green-50"
                 disabled={isSubmitting}
               />
               <input
@@ -440,19 +435,19 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                 placeholder="Country"
                 value={state.location.country}
                 onChange={(e) => setField("location.country", e.target.value)}
-                className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                className="w-full p-3 border-2 border-green-500 rounded-xl focus:border-green-700 focus:ring-2 focus:ring-green-500/20 outline-none transition-all duration-300 bg-white text-gray-900 font-nunito hover:bg-green-50"
                 disabled={isSubmitting}
               />
             </div>
 
-            <Card className="p-6 bg-gradient-primary text-primary-foreground border-0 shadow-glow">
+            <Card className="p-6 bg-white border-2 border-green-500 text-green-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-center gap-3 mb-4">
                 <Sparkles className="w-6 h-6" />
-                <h3 className="font-semibold">
+                <h3 className="font-bold text-xl font-nunito">
                   Ready for Your Culinary Journey!
                 </h3>
               </div>
-              <p className="text-sm opacity-90">
+              <p className="text-sm font-nunito opacity-90">
                 Nourish AI is preparing personalized meal plans based on your
                 preferences. Get ready for a delicious adventure!
               </p>
@@ -462,15 +457,15 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
       case 5:
         return (
           <div className="text-center space-y-6">
-            <UserCircle className="w-16 h-16 text-primary mx-auto" />
-            <h2 className="text-2xl font-bold">Create Your Profile</h2>
-            <p className="text-muted-foreground">
+            <UserCircle className="w-16 h-16 text-green-700 mx-auto" />
+            <h2 className="text-5xl font-nunito font-extrabold text-green-700 mb-6 tracking-tight">Create Your Profile</h2>
+            <p className="text-lg font-nunito text-gray-900 opacity-90">
               Almost there! Create your account to save your preferences.
             </p>
 
             <div className="space-y-4 text-left">
               <div>
-                <label className="text-sm font-medium block mb-1">
+                <label className="text-sm font-bold font-nunito block mb-1 text-gray-900">
                   Full Name *
                 </label>
                 <input
@@ -478,13 +473,13 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                   placeholder="Enter your full name"
                   value={state.name}
                   onChange={(e) => setField("name", e.target.value)}
-                  className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                  className="w-full p-3 border-2 border-green-500 rounded-xl focus:border-green-700 focus:ring-2 focus:ring-green-500/20 outline-none transition-all duration-300 bg-white text-gray-900 font-nunito hover:bg-green-50"
                   disabled={isSubmitting}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium block mb-1">
+                <label className="text-sm font-bold font-nunito block mb-1 text-gray-900">
                   Email Address *
                 </label>
                 <input
@@ -492,13 +487,13 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                   placeholder="you@example.com"
                   value={state.email}
                   onChange={(e) => setField("email", e.target.value)}
-                  className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                  className="w-full p-3 border-2 border-green-500 rounded-xl focus:border-green-700 focus:ring-2 focus:ring-green-500/20 outline-none transition-all duration-300 bg-white text-gray-900 font-nunito hover:bg-green-50"
                   disabled={isSubmitting}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium block mb-1">
+                <label className="text-sm font-bold font-nunito block mb-1 text-gray-900">
                   Password *
                 </label>
                 <input
@@ -506,15 +501,15 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
                   placeholder="Enter a strong password (min. 6 characters)"
                   value={state.password}
                   onChange={(e) => setField("password", e.target.value)}
-                  className="w-full p-3 border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-smooth"
+                  className="w-full p-3 border-2 border-green-500 rounded-xl focus:border-green-700 focus:ring-2 focus:ring-green-500/20 outline-none transition-all duration-300 bg-white text-gray-900 font-nunito hover:bg-green-50"
                   disabled={isSubmitting}
                 />
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-              <p className="font-medium mb-1">🔒 Your Privacy Matters</p>
-              <p>
+            <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-sm text-green-800 font-nunito shadow-lg">
+              <p className="font-bold mb-1">🔒 Your Privacy Matters</p>
+              <p className="opacity-90">
                 We'll use this information to personalize your meal
                 recommendations and keep your account secure.
               </p>
@@ -527,10 +522,21 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl p-8 shadow-warm border-0">
+    <div className="min-h-screen bg-white/10 flex items-center justify-center p-4 relative">
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none" 
+        style={{
+          backgroundImage: `url(${HeroBackground})`,
+          backgroundRepeat: 'repeat',
+          backgroundAttachment: 'fixed',
+          backgroundSize: 'auto',
+          opacity: 1,
+        }}
+      />
+      
+      <Card className="w-full max-w-2xl p-8 shadow-lg border-2 border-green-500 bg-white rounded-xl relative z-10">
         <div className="mb-8">
-          <div className="flex justify-between text-sm text-warm mb-2">
+          <div className="flex justify-between text-sm font-nunito text-gray-900 opacity-80 mb-2">
             <span>
               Step {currentStep + 1} of {totalSteps}
             </span>
@@ -542,56 +548,67 @@ const OnboardingFlow = ({ onComplete, onSwitchToLogin }) => {
         <div className="mb-8">{renderStep()}</div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">❌ {error}</p>
-            <p className="text-red-600 text-xs mt-1">
+          <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl shadow-lg">
+            <p className="text-red-700 text-sm font-bold font-nunito">❌ {error}</p>
+            <p className="text-red-600 text-xs mt-1 font-nunito">
               Check browser console and server logs for more details.
             </p>
           </div>
         )}
 
-        <div className="flex justify-between items-center">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 0 || isSubmitting}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Previous
-          </Button>
+        <div className="flex justify-between items-center gap-4">
+  <Button
+    variant="outline"
+    onClick={prevStep}
+    disabled={currentStep === 0 || isSubmitting}
+   className="flex items-center gap-3 px-6 py-4 bg-green-700 border-2 border-green-700 text-white rounded-xl shadow-lg 
+    hover:shadow-xl hover:scale-105 hover:bg-green-800 hover:border-green-800
+    active:scale-100 active:shadow-md active:bg-green-900
+    focus:outline-none focus:ring-4 focus:ring-green-300
+    transition-all duration-300 font-bold group 
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-green-700"
+  >
+    <ArrowLeft className="w-6 h-6 group-hover:group-enabled:translate-x-1 transition-transform" />
+    Previous
+  </Button>
 
-          <Button
-            onClick={nextStep}
-            disabled={isSubmitting}
-            className="bg-gradient-primary text-primary-foreground border-0 shadow-warm hover:shadow-glow flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Creating Account...
-              </>
-            ) : currentStep === totalSteps - 1 ? (
-              <>
-                Start Cooking!
-                <ArrowRight className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                Next
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-        </div>
+  <Button
+    onClick={nextStep}
+    disabled={isSubmitting}
+    className="flex items-center gap-3 px-6 py-4 bg-green-700 border-2 border-green-700 text-white rounded-xl shadow-lg 
+    hover:shadow-xl hover:scale-105 hover:bg-green-800 hover:border-green-800
+    active:scale-100 active:shadow-md active:bg-green-900
+    focus:outline-none focus:ring-4 focus:ring-green-300
+    transition-all duration-300 font-bold group 
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-green-700"
+  >
+    {isSubmitting ? (
+      <>
+        <Loader2 className="w-6 h-6 animate-spin" />
+        Creating Account...
+      </>
+    ) : currentStep === totalSteps - 1 ? (
+      <>
+        Start Cooking!
+        <ArrowRight className="w-6 h-6 group-hover:group-enabled:translate-x-1 transition-transform" />
+      </>
+    ) : (
+      <>
+        Next
+        <ArrowRight className="w-6 h-6 group-hover:group-enabled:translate-x-1 transition-transform" />
+      </>
+    )}
+  </Button>
+</div>
+
 
         {onSwitchToLogin && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-warm">
+            <p className="text-sm font-nunito text-gray-900 opacity-80">
               Already have an account?{" "}
               <button
                 onClick={onSwitchToLogin}
-                className="text-primary hover:text-primary/80 font-medium"
+                className="text-green-700 hover:text-green-900 font-bold transition-all duration-300"
                 disabled={isSubmitting}
               >
                 Sign in here
